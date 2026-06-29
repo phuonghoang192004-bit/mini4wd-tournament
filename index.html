@@ -3,1316 +3,416 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UnELAB Mini 4WD Tournament</title>
+  <title>SGMS Mini 4WD - Tournament Pro</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --gold: #f5c518; --gold-dim: #c9a000; --red: #e63946; --cyan: #00d4ff;
+      --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24; --border: #2a2a3a;
+      --text: #e8e8f0; --text-dim: #7878a0; --green: #2ecc71;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0a0f; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #111; }
-    ::-webkit-scrollbar-thumb { background: #f5c518; border-radius: 3px; }
+    body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; overflow-x: hidden; }
+
+    /* Animations */
+    @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+    @keyframes pulse-gold { 0% { box-shadow: 0 0 5px var(--gold); } 50% { box-shadow: 0 0 20px var(--gold); } 100% { box-shadow: 0 0 5px var(--gold); } }
+
+    /* Login & Setup */
+    .login-container { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a2e 0%, #0a0a0f 100%); }
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-family: 'Orbitron'; transition: 0.3s; }
+    .btn-gold { background: var(--gold); color: #000; }
+    .btn-gold:hover { background: #fff; box-shadow: 0 0 15px var(--gold); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .input { background: var(--bg3); border: 1px solid var(--border); color: white; padding: 12px; borderRadius: 6px; width: 100%; margin-bottom: 15px; }
+
+    /* Bracket & Match */
+    .bracket-wrapper { display: flex; gap: 40px; padding: 20px; overflow-x: auto; min-height: 600px; }
+    .match-box { background: var(--bg3); border: 1px solid var(--border); width: 200px; border-radius: 8px; margin-bottom: 15px; position: relative; }
+    .match-box.active { border-color: var(--gold); animation: pulse-gold 2s infinite; }
+    .player-slot { padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .player-slot:last-child { border-bottom: none; }
+    .winner { color: var(--gold); font-weight: bold; background: rgba(245, 197, 24, 0.1); }
+    .lane-badge { font-family: 'Share Tech Mono'; font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; background: var(--border); }
+    .out-badge { border: 1px solid var(--red); color: var(--red); padding: 2px 5px; font-size: 0.7rem; font-weight: 900; }
+
+    /* Dice & Jackpot */
+    .dice { width: 40px; height: 40px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; cursor: pointer; border-radius: 8px; font-weight: 900; }
+    .jackpot-num { font-family: 'Orbitron'; font-size: 2rem; color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .tab { padding: 8px 16px; cursor: pointer; color: var(--text-dim); font-family: 'Orbitron'; font-size: 0.8rem; }
+    .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+
+    .header { background: var(--bg2); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); }
+    .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--gold); font-size: 1.5rem; letter-spacing: 3px; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useReducer, useEffect, useRef, useCallback } = React;
 
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
 
+// --- UTILS ---
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+const getBracketTarget = (n) => n < 16 ? 8 : (n < 32 ? 16 : 32);
 
-// ============================================================
-// CONSTANTS & HELPERS
-// ============================================================
-const ADMIN_PASS = "Phuong090";
-const PHASES = { LANDING: "LANDING", LOBBY: "LOBBY", JACKPOT: "JACKPOT", QUALIFIER: "QUALIFIER", SEEDING: "SEEDING", BRACKET: "BRACKET", CHAMPION: "CHAMPION" };
-
-function genRoomCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function groupPlayers(players) {
-  const n = players.length;
-  const groups = [];
-  let rem = n;
-  let idx = 0;
-  while (rem > 0) {
-    if (rem % 2 === 0 || rem >= 3) {
-      if (rem % 3 === 0) {
-        groups.push(players.slice(idx, idx + 3));
-        idx += 3; rem -= 3;
-      } else if (rem % 2 === 0) {
-        groups.push(players.slice(idx, idx + 2));
-        idx += 2; rem -= 2;
-      } else {
-        groups.push(players.slice(idx, idx + 3));
-        idx += 3; rem -= 3;
-      }
-    } else {
-      groups.push(players.slice(idx, idx + 2));
-      idx += 2; rem -= 2;
-    }
-  }
-  return groups;
-}
-
-function getBracketSize(count) {
-  if ([8, 16, 32].includes(count)) return { direct: true, size: count };
-  if (count >= 9 && count <= 15) return { direct: false, size: 8 };
-  if (count >= 17 && count <= 31) return { direct: false, size: 16 };
-  if (count >= 33 && count <= 63) return { direct: false, size: 32 };
-  return null;
-}
-
-// Double Elimination bracket builder
-function buildDEBracket(seeds) {
-  const size = seeds.length;
-  // Winners bracket rounds
-  const wbRounds = [];
-  let wbMatches = [];
-  for (let i = 0; i < size; i += 2) {
-    wbMatches.push({ id: `WB-R1-M${i / 2}`, p1: seeds[i], p2: seeds[i + 1], score1: null, score2: null, winner: null, loser: null, round: 1, bracket: "WB", lane1: null, lane2: null, lane3: null, status: "PENDING" });
-  }
-  wbRounds.push(wbMatches);
-  let prevRound = wbMatches;
-  let round = 2;
-  while (prevRound.length > 1) {
-    const nextRound = [];
-    for (let i = 0; i < prevRound.length; i += 2) {
-      nextRound.push({ id: `WB-R${round}-M${i / 2}`, p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, round, bracket: "WB", lane1: null, lane2: null, lane3: null, status: "WAITING" });
-    }
-    wbRounds.push(nextRound);
-    prevRound = nextRound;
-    round++;
-  }
-
-  // Losers bracket
-  const lbRounds = [];
-  const wbRoundCount = wbRounds.length;
-  let lbSize = size / 2;
-  let lbRound = 1;
-  // LB round 1: gets losers from WB R1
-  let lbMatches = [];
-  for (let i = 0; i < lbSize; i += 2) {
-    lbMatches.push({ id: `LB-R${lbRound}-M${i / 2}`, p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, round: lbRound, bracket: "LB", lane1: null, lane2: null, lane3: null, status: "WAITING" });
-  }
-  lbRounds.push(lbMatches);
-  lbRound++;
-  lbSize = lbSize / 2;
-
-  while (lbSize >= 1) {
-    lbMatches = [];
-    for (let i = 0; i < lbSize; i++) {
-      lbMatches.push({ id: `LB-R${lbRound}-M${i}`, p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, round: lbRound, bracket: "LB", lane1: null, lane2: null, lane3: null, status: "WAITING" });
-    }
-    lbRounds.push(lbMatches);
-    lbRound++;
-    if (lbSize === 1) break;
-    lbSize = Math.ceil(lbSize / 2);
-  }
-
-  const grandFinal = { id: "GF-1", p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, bracket: "GF", lane1: null, lane2: null, lane3: null, status: "WAITING", isReset: false };
-  const grandFinalReset = { id: "GF-2", p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, bracket: "GF", lane1: null, lane2: null, lane3: null, status: "WAITING", isReset: true };
-
-  return { wbRounds, lbRounds, grandFinal, grandFinalReset, champion: null };
-}
-
-// ============================================================
-// REDUCER
-// ============================================================
-const initialState = {
-  phase: PHASES.LANDING,
-  role: null,
-  roomCode: null,
-  players: [],
-  listLocked: false,
-  qualifierRounds: 3,
-  qualifierMatches: [],
-  currentQualRound: 0,
-  bracketSize: null,
-  advancedPlayers: [],
-  seedingPairs: [],
-  seedingDone: false,
-  bracket: null,
-  champion: null,
-  activeMatchId: null,
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "SET_PHASE": return { ...state, phase: action.payload };
-    case "SET_ROLE": return { ...state, role: action.payload };
-    case "SET_ROOM_CODE": return { ...state, roomCode: action.payload };
-    case "ADD_PLAYER": {
-      const newP = { id: Date.now() + Math.random(), name: action.payload, jackpotNum: null, score: 0, totalScore: 0, status: "ACTIVE", matchHistory: [] };
-      return { ...state, players: [...state.players, newP] };
-    }
-    case "UPDATE_PLAYER_NAME": return { ...state, players: state.players.map(p => p.id === action.id ? { ...p, name: action.name } : p) };
-    case "REMOVE_PLAYER": return { ...state, players: state.players.filter(p => p.id !== action.id) };
-    case "LOCK_LIST": return { ...state, listLocked: true };
-    case "ASSIGN_JACKPOT": return { ...state, players: state.players.map(p => p.id === action.id ? { ...p, jackpotNum: action.num } : p) };
-    case "SET_QUALIFIER_ROUNDS": return { ...state, qualifierRounds: action.payload };
-    case "INIT_QUALIFIER_ROUND": {
-      const shuffled = shuffleArray(state.players.filter(p => p.status === "ACTIVE"));
-      const groups = groupPlayers(shuffled);
-      const roundNum = state.currentQualRound + 1;
-      const newMatches = groups.map((grp, i) => ({
-        id: `Q-R${roundNum}-M${i}`,
-        players: grp.map(p => ({ id: p.id, lane: null, score: null, diceRolled: false })),
-        round: roundNum,
-        status: "DICE",
-        size: grp.length
-      }));
-      return { ...state, qualifierMatches: [...state.qualifierMatches, ...newMatches], currentQualRound: roundNum };
-    }
-    case "SET_QUAL_DICE": {
-      return {
-        ...state,
-        qualifierMatches: state.qualifierMatches.map(m => {
-          if (m.id !== action.matchId) return m;
-          return { ...m, players: m.players.map(p => p.id === action.playerId ? { ...p, lane: action.lane, diceRolled: true } : p) };
-        })
-      };
-    }
-    case "SET_QUAL_MATCH_STATUS": {
-      return { ...state, qualifierMatches: state.qualifierMatches.map(m => m.id === action.matchId ? { ...m, status: action.status } : m) };
-    }
-    case "SET_QUAL_SCORE": {
-      return {
-        ...state,
-        qualifierMatches: state.qualifierMatches.map(m => {
-          if (m.id !== action.matchId) return m;
-          return { ...m, players: m.players.map(p => p.id === action.playerId ? { ...p, score: action.score } : p) };
-        })
-      };
-    }
-    case "FINISH_QUALIFIER_ROUND": {
-      // Tally scores
-      const scoreUpdates = {};
-      state.qualifierMatches.filter(m => m.round === state.currentQualRound).forEach(m => {
-        m.players.forEach(p => { scoreUpdates[p.id] = (scoreUpdates[p.id] || 0) + (p.score || 0); });
-      });
-      const updatedPlayers = state.players.map(p => ({ ...p, totalScore: (p.totalScore || 0) + (scoreUpdates[p.id] || 0) }));
-      return { ...state, players: updatedPlayers };
-    }
-    case "RESOLVE_QUALIFIERS": {
-      const bs = getBracketSize(state.players.length);
-      const sorted = [...state.players].sort((a, b) => b.totalScore - a.totalScore);
-      const advanced = sorted.slice(0, bs.size).map(p => ({ ...p, status: "ADVANCED" }));
-      const eliminated = sorted.slice(bs.size).map(p => ({ ...p, status: "OUT" }));
-      return { ...state, advancedPlayers: advanced, players: [...advanced, ...eliminated], bracketSize: bs.size };
-    }
-    case "ADD_SEEDING_PAIR": {
-      return { ...state, seedingPairs: [...state.seedingPairs, action.payload] };
-    }
-    case "INIT_BRACKET": {
-      const seeds = action.seeds;
-      const bracket = buildDEBracket(seeds);
-      return { ...state, bracket, phase: PHASES.BRACKET };
-    }
-    case "SET_BRACKET_DICE": {
-      return {
-        ...state,
-        bracket: updateMatchInBracket(state.bracket, action.matchId, m => ({
-          ...m,
-          players: m.players ? m.players.map(p => p.id === action.pid ? { ...p, lane: action.lane } : p) : m.players
-        }))
-      };
-    }
-    case "UPDATE_BRACKET_MATCH": {
-      const { matchId, field, value } = action;
-      return {
-        ...state,
-        bracket: updateMatchInBracket(state.bracket, matchId, m => ({ ...m, [field]: value }))
-      };
-    }
-    case "ADVANCE_BRACKET_MATCH": {
-      return { ...state, bracket: action.bracket, players: action.players || state.players };
-    }
-    case "SET_CHAMPION": return { ...state, champion: action.payload, phase: PHASES.CHAMPION };
-    case "SET_ACTIVE_MATCH": return { ...state, activeMatchId: action.payload };
-    case "RESET": return { ...initialState };
-    default: return state;
-  }
-}
-
-function updateMatchInBracket(bracket, matchId, updater) {
-  if (!bracket) return bracket;
-  const newBracket = { ...bracket };
-  newBracket.wbRounds = bracket.wbRounds.map(round => round.map(m => m.id === matchId ? updater(m) : m));
-  newBracket.lbRounds = bracket.lbRounds.map(round => round.map(m => m.id === matchId ? updater(m) : m));
-  if (bracket.grandFinal?.id === matchId) newBracket.grandFinal = updater(bracket.grandFinal);
-  if (bracket.grandFinalReset?.id === matchId) newBracket.grandFinalReset = updater(bracket.grandFinalReset);
-  return newBracket;
-}
-
-// ============================================================
-// SLOT MACHINE COMPONENT
-// ============================================================
-function SlotMachine({ onResult, usedNumbers = [], autoSpin = false }) {
-  const [spinning, setSpinning] = useState(false);
-  const [d1, setD1] = useState("?");
-  const [d2, setD2] = useState("?");
-  const [result, setResult] = useState(null);
-  const intervalRef = useRef(null);
-
-  const spin = useCallback(() => {
-    if (spinning) return;
-    setSpinning(true);
-    setResult(null);
-    let count = 0;
-    intervalRef.current = setInterval(() => {
-      setD1(Math.floor(Math.random() * 10));
-      setD2(Math.floor(Math.random() * 10));
-      count++;
-      if (count > 15) {
-        clearInterval(intervalRef.current);
-        let num;
-        let attempts = 0;
-        do {
-          num = Math.floor(Math.random() * 100);
-          attempts++;
-        } while (usedNumbers.includes(num) && attempts < 200);
-        const n1 = Math.floor(num / 10);
-        const n2 = num % 10;
-        setD1(n1);
-        setD2(n2);
-        setResult(num);
-        setSpinning(false);
-        if (onResult) onResult(num);
-      }
-    }, 60);
-  }, [spinning, usedNumbers, onResult]);
-
-  useEffect(() => {
-    if (autoSpin) spin();
-  }, []);
-
-  useEffect(() => () => clearInterval(intervalRef.current), []);
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex gap-2">
-        {[d1, d2].map((digit, i) => (
-          <div key={i} className={`slot-reel w-16 h-20 rounded-lg flex items-center justify-center text-4xl font-black border-2 ${spinning ? "slot-spin border-yellow-400 text-yellow-300" : result !== null ? "border-green-400 text-green-300" : "border-gray-600 text-gray-400"}`}
-            style={{ background: "linear-gradient(180deg,#1a1a2e,#0d0d1a)", fontFamily: "monospace", boxShadow: spinning ? "0 0 20px #f5c518" : result !== null ? "0 0 20px #22c55e" : "none" }}>
-            {digit}
-          </div>
-        ))}
-      </div>
-      {result === null && (
-        <button onClick={spin} disabled={spinning} className="px-6 py-2 rounded font-bold text-sm transition-all" style={{ background: spinning ? "#333" : "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000", cursor: spinning ? "not-allowed" : "pointer" }}>
-          {spinning ? "ĐANG QUAY..." : "QUAY SỐ"}
-        </button>
-      )}
-      {result !== null && (
-        <div className="text-2xl font-black text-green-400 animate-bounce">
-          #{String(result).padStart(2, "0")}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// DICE COMPONENT
-// ============================================================
-function Dice({ onResult, disabled, size = "md", usedLanes = [], isThreePlayer = false }) {
-  const [rolling, setRolling] = useState(false);
-  const [value, setValue] = useState(null);
-  const allowedLanes = isThreePlayer ? [1, 2, 3] : [1, 3];
-
-  const roll = () => {
-    if (rolling || disabled || value !== null) return;
-    setRolling(true);
-    let count = 0;
-    const interval = setInterval(() => {
-      count++;
-      if (count > 12) {
-        clearInterval(interval);
-        const available = allowedLanes.filter(l => !usedLanes.includes(l));
-        if (available.length === 0) { setRolling(false); return; }
-        const res = available[Math.floor(Math.random() * available.length)];
-        setValue(res);
-        setRolling(false);
-        if (onResult) onResult(res);
-      }
-    }, 60);
-  };
-
-  const dotPositions = {
-    1: [[50, 50]],
-    2: [[25, 25], [75, 75]],
-    3: [[25, 25], [50, 50], [75, 75]],
-    4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-    5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-    6: [[25, 20], [75, 20], [25, 50], [75, 50], [25, 80], [75, 80]],
-  };
-
-  const sz = size === "sm" ? 40 : size === "md" ? 56 : 72;
-  const dots = value ? dotPositions[value] || [] : [];
-
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div onClick={disabled || value !== null ? undefined : roll}
-        className={`relative rounded-lg border-2 transition-all ${rolling ? "animate-spin border-yellow-400" : value ? "border-green-400" : disabled ? "border-gray-700 opacity-40" : "border-gray-500 hover:border-yellow-400 cursor-pointer"}`}
-        style={{ width: sz, height: sz, background: value ? "#1a3a1a" : "#1a1a2e", boxShadow: value ? "0 0 10px #22c55e" : "none" }}>
-        <svg width={sz} height={sz} viewBox="0 0 100 100">
-          {dots.map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r="10" fill={value ? "#22c55e" : "#888"} />
-          ))}
-        </svg>
-        {rolling && <div className="absolute inset-0 flex items-center justify-center text-yellow-400 text-lg font-bold">⚄</div>}
-      </div>
-      <div className="text-xs font-bold" style={{ color: value ? "#22c55e" : "#666" }}>
-        {value ? `LÀN ${value}` : disabled ? "—" : "LĂN"}
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// MAIN APP
-// ============================================================
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [adminPass, setAdminPass] = useState("");
-  const [passError, setPassError] = useState(false);
-  const [guestRoom, setGuestRoom] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [shakePass, setShakePass] = useState(false);
-  const [newPlayerName, setNewPlayerName] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState("");
-  const [spinningFor, setSpinningFor] = useState(null);
-  const [dualSpin1, setDualSpin1] = useState(null);
-  const [dualSpin2, setDualSpin2] = useState(null);
-  const [dualSpinDone, setDualSpinDone] = useState(false);
-  const [currentSeedPair, setCurrentSeedPair] = useState([null, null]);
-  const [activeScoreMatch, setActiveScoreMatch] = useState(null);
-  const [scoreInputs, setScoreInputs] = useState({});
-  const [outAnimIds, setOutAnimIds] = useState([]);
-  const [champAnim, setChampAnim] = useState(false);
+  const [user, setUser] = useState(null); // { role: 'admin'|'guest', name: string }
+  const [tournament, setTournament] = useState(null);
+  const [activeTab, setActiveTab] = useState('info');
+  const [passInput, setPassInput] = useState('');
+  const [guestName, setGuestName] = useState('');
 
-  // ---- LANDING ----
-  const handleAdminLogin = () => {
-    if (adminPass === ADMIN_PASS) {
-      const code = genRoomCode();
-      dispatch({ type: "SET_ROLE", payload: "ADMIN" });
-      dispatch({ type: "SET_ROOM_CODE", payload: code });
-      dispatch({ type: "SET_PHASE", payload: PHASES.LOBBY });
-    } else {
-      setShakePass(true);
-      setPassError(true);
-      setTimeout(() => setShakePass(false), 600);
+  // --- AUTH ---
+  const loginAdmin = () => {
+    if (passInput === 'Phuong090') setUser({ role: 'admin', name: 'Admin' });
+    else alert('Sai mật mã!');
+  };
+
+  const loginGuest = () => {
+    if (!guestName.trim()) return alert('Nhập tên khách!');
+    setUser({ role: 'guest', name: guestName });
+  };
+
+  const createTournament = (name) => {
+    const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+    setTournament({
+      name,
+      code,
+      phase: 'registration', // registration -> jackpot -> qualifier -> bracket
+      players: [],
+      isLocked: false,
+      qualifierRounds: 3,
+      currentRound: 0,
+      matches: [],
+      matchHistory: []
+    });
+  };
+
+  const addPlayer = (name) => {
+    if (tournament.players.length >= 64) return;
+    const newPlayer = {
+      id: Date.now() + Math.random(),
+      name,
+      jackpotId: null,
+      score: 0,
+      status: 'active', // active | out
+      lane: null
+    };
+    setTournament(t => ({ ...t, players: [...t.players, newPlayer] }));
+  };
+
+  // --- LOGIC: CHIA NHÓM VÒNG LOẠI (KHÔNG LẺ NGƯỜI) ---
+  const generateQualifierMatches = (players) => {
+    let pList = shuffle(players.filter(p => p.status === 'active'));
+    let matches = [];
+    while (pList.length > 0) {
+      let groupSize = 3;
+      if (pList.length === 4) groupSize = 2; // Tránh lẻ 1
+      if (pList.length === 2) groupSize = 2;
+      
+      const group = pList.splice(0, groupSize);
+      matches.push({
+        id: 'M' + Math.random(),
+        players: group.map(p => ({ ...p, lane: null, matchScore: 0 })),
+        isComplete: false
+      });
     }
+    return matches;
   };
 
-  const handleGuestJoin = () => {
-    if (guestRoom.length < 4) return;
-    dispatch({ type: "SET_ROLE", payload: "GUEST" });
-    dispatch({ type: "SET_ROOM_CODE", payload: guestRoom.toUpperCase() });
-    dispatch({ type: "SET_PHASE", payload: PHASES.LOBBY });
+  const startQualifiers = () => {
+    const matches = generateQualifierMatches(tournament.players);
+    setTournament(t => ({ ...t, phase: 'qualifier', matches, currentRound: 1 }));
   };
 
-  const handleGuestRegister = () => {
-    if (!guestName.trim()) return;
-    dispatch({ type: "ADD_PLAYER", payload: guestName.trim() });
-    setGuestName("");
+  // --- LOGIC: XÚC XẮC LANE (2 NGƯỜI: 1,3 | 3 NGƯỜI: 1,2,3) ---
+  const rollDice = (matchId, playerId) => {
+    setTournament(t => {
+      const match = t.matches.find(m => m.id === matchId);
+      const playersInMatch = match.players;
+      const rolledLanes = playersInMatch.map(p => p.lane).filter(l => l !== null);
+      
+      let available = playersInMatch.length === 2 ? [1, 3] : [1, 2, 3];
+      available = available.filter(l => !rolledLanes.includes(l));
+
+      if (available.length === 0) return t;
+      const result = available[Math.floor(Math.random() * available.length)];
+
+      return {
+        ...t,
+        matches: t.matches.map(m => m.id === matchId ? {
+          ...m,
+          players: m.players.map(p => p.id === playerId ? { ...p, lane: result } : p)
+        } : m)
+      };
+    });
   };
 
-  // ---- JACKPOT ----
-  const handleJackpotResult = (playerId, num) => {
-    dispatch({ type: "ASSIGN_JACKPOT", id: playerId, num });
-    setSpinningFor(null);
+  const updateScore = (matchId, playerId, score) => {
+    setTournament(t => ({
+      ...t,
+      matches: t.matches.map(m => m.id === matchId ? {
+        ...m,
+        players: m.players.map(p => p.id === playerId ? { ...p, matchScore: parseInt(score) } : p)
+      } : m)
+    }));
   };
 
-  const allJackpotsAssigned = state.players.every(p => p.jackpotNum !== null);
-
-  // ---- QUALIFIERS ----
-  const getCurrentRoundMatches = () => state.qualifierMatches.filter(m => m.round === state.currentQualRound);
-
-  const allDiceRolled = (match) => match.players.every(p => p.lane !== null);
-  const allScoresEntered = (match) => match.players.every(p => p.score !== null);
-
-  const handleQualDice = (matchId, playerId, lane) => {
-    dispatch({ type: "SET_QUAL_DICE", matchId, playerId, lane });
+  const completeMatch = (matchId) => {
+    setTournament(t => {
+      const match = t.matches.find(m => m.id === matchId);
+      const updatedPlayers = t.players.map(p => {
+        const pInMatch = match.players.find(pm => pm.id === p.id);
+        if (pInMatch) return { ...p, score: p.score + pInMatch.matchScore };
+        return p;
+      });
+      return {
+        ...t,
+        players: updatedPlayers,
+        matches: t.matches.map(m => m.id === matchId ? { ...m, isComplete: true } : m)
+      };
+    });
   };
 
-  const handleQualScore = (matchId, playerId, score) => {
-    dispatch({ type: "SET_QUAL_SCORE", matchId, playerId, score });
-  };
-
-  const handleFinishQualRound = () => {
-    dispatch({ type: "FINISH_QUALIFIER_ROUND" });
-    if (state.currentQualRound < state.qualifierRounds) {
-      dispatch({ type: "INIT_QUALIFIER_ROUND" });
-    } else {
-      dispatch({ type: "RESOLVE_QUALIFIERS" });
-      const eliminated = [...state.players].sort((a, b) => b.totalScore - a.totalScore).slice(getBracketSize(state.players.length)?.size || 8);
-      setOutAnimIds(eliminated.map(p => p.id));
-      setTimeout(() => {
-        dispatch({ type: "SET_PHASE", payload: PHASES.SEEDING });
-      }, 1500);
-    }
-  };
-
-  // ---- SEEDING ----
-  const usedJackpots = state.seedingPairs.flatMap(p => [p[0]?.jackpotNum, p[1]?.jackpotNum]).filter(Boolean);
-  const unseededPlayers = (state.advancedPlayers.length > 0 ? state.advancedPlayers : state.players).filter(p => !usedJackpots.includes(p.jackpotNum));
-
-  const handleSeedSpin1Result = (num) => {
-    const p = state.players.find(pl => pl.jackpotNum === num && !usedJackpots.includes(pl.jackpotNum));
-    setCurrentSeedPair([p || null, currentSeedPair[1]]);
-    setDualSpin1(num);
-  };
-
-  const handleSeedSpin2Result = (num) => {
-    const p = state.players.find(pl => pl.jackpotNum === num && !usedJackpots.includes(pl.jackpotNum) && pl.jackpotNum !== dualSpin1);
-    setCurrentSeedPair([currentSeedPair[0], p || null]);
-    setDualSpin2(num);
-    setDualSpinDone(true);
-  };
-
-  const confirmSeedPair = () => {
-    if (currentSeedPair[0] && currentSeedPair[1]) {
-      dispatch({ type: "ADD_SEEDING_PAIR", payload: currentSeedPair });
-      setCurrentSeedPair([null, null]);
-      setDualSpin1(null);
-      setDualSpin2(null);
-      setDualSpinDone(false);
-    }
-  };
-
-  const initBracket = () => {
-    const seeds = state.seedingPairs.flatMap(pair => pair);
-    dispatch({ type: "INIT_BRACKET", seeds });
-  };
-
-  // ---- BRACKET ----
-  const getPlayerById = (id) => state.players.find(p => p.id === id);
-
-  const handleBracketMatchAction = (match) => {
-    setActiveScoreMatch(match.id);
-    const init = {};
-    if (match.p1) init[match.p1] = match.score1 ?? "";
-    if (match.p2) init[match.p2] = match.score2 ?? "";
-    if (match.p3) init[match.p3] = match.score3 ?? "";
-    setScoreInputs(init);
-  };
-
-  const submitBracketScores = (match) => {
-    if (!state.bracket) return;
-    const p1 = match.p1, p2 = match.p2;
-    const s1 = parseInt(scoreInputs[p1] ?? 0);
-    const s2 = parseInt(scoreInputs[p2] ?? 0);
-    if (isNaN(s1) || isNaN(s2)) return;
-
-    let winner = s1 > s2 ? p1 : s2 > s1 ? p2 : null;
-    let loser = winner === p1 ? p2 : winner === p2 ? p1 : null;
-
-    let newBracket = updateMatchInBracket(state.bracket, match.id, m => ({
-      ...m, score1: s1, score2: s2, winner, loser, status: "DONE"
+  const finalizeQualifiers = () => {
+    const target = getBracketTarget(tournament.players.length);
+    const sorted = [...tournament.players].sort((a,b) => b.score - a.score);
+    
+    const finalPlayers = sorted.map((p, idx) => ({
+      ...p,
+      status: idx < target ? 'active' : 'out'
     }));
 
-    // Advance in Winners Bracket
-    if (match.bracket === "WB") {
-      newBracket = advanceWB(newBracket, match, winner, loser);
-    } else if (match.bracket === "LB") {
-      newBracket = advanceLB(newBracket, match, winner, loser);
-    } else if (match.bracket === "GF") {
-      if (!match.isReset) {
-        if (winner === match.p1) {
-          // WB winner wins GF
-          setChampAnim(true);
-          setTimeout(() => dispatch({ type: "SET_CHAMPION", payload: getPlayerById(winner) }), 1500);
-        } else {
-          // LB winner wins, need reset
-          newBracket = { ...newBracket, grandFinalReset: { ...newBracket.grandFinalReset, p1: winner, p2: match.p1, status: "PENDING" } };
-        }
-      } else {
-        setChampAnim(true);
-        setTimeout(() => dispatch({ type: "SET_CHAMPION", payload: getPlayerById(winner) }), 1500);
-      }
-    }
-
-    dispatch({ type: "ADVANCE_BRACKET_MATCH", bracket: newBracket });
-    setActiveScoreMatch(null);
+    setTournament(t => ({
+      ...t,
+      players: finalPlayers,
+      phase: 'bracket_seeding',
+      matches: []
+    }));
   };
 
-  function advanceWB(bracket, match, winner, loser) {
-    let b = { ...bracket };
-    const rIdx = match.round - 1;
-    const mIdx = parseInt(match.id.split("-M")[1]);
-    const nextRIdx = rIdx + 1;
-
-    if (nextRIdx < b.wbRounds.length) {
-      const nextMIdx = Math.floor(mIdx / 2);
-      const slot = mIdx % 2 === 0 ? "p1" : "p2";
-      b.wbRounds = b.wbRounds.map((r, ri) => ri === nextRIdx ? r.map((m2, mi) => mi === nextMIdx ? { ...m2, [slot]: winner, status: m2.p1 && m2.p2 ? "PENDING" : "WAITING" } : m2) : r);
-    } else {
-      // WB finalist goes to Grand Final as p1
-      b.grandFinal = { ...b.grandFinal, p1: winner, status: b.grandFinal.p2 ? "PENDING" : "WAITING" };
+  // --- DOUBLE ELIMINATION BRACKET SETUP ---
+  const startBracket = () => {
+    // Logic quay số Jackpot 2 người cùng lúc để tìm cặp đấu
+    const activeOnes = shuffle(tournament.players.filter(p => p.status === 'active'));
+    let matches = [];
+    for(let i=0; i < activeOnes.length; i+=2) {
+      matches.push({
+        id: `B1-${i}`,
+        players: [activeOnes[i], activeOnes[i+1]].map(p => ({...p, lane: null, matchScore: 0})),
+        round: 1,
+        type: 'winner'
+      });
     }
-
-    // Loser drops to LB
-    if (loser) {
-      b = dropToLB(b, match, loser);
-    }
-    return b;
-  }
-
-  function dropToLB(bracket, wbMatch, loser) {
-    let b = { ...bracket };
-    const wbRound = wbMatch.round;
-    // Map WB round to LB round
-    const lbRoundIdx = wbRound === 1 ? 0 : wbRound * 2 - 3;
-    if (lbRoundIdx >= 0 && lbRoundIdx < b.lbRounds.length) {
-      const lbRound = b.lbRounds[lbRoundIdx];
-      const wbMIdx = parseInt(wbMatch.id.split("-M")[1]);
-      const lbMIdx = Math.floor(wbMIdx / 2);
-      if (lbMIdx < lbRound.length) {
-        const slot = lbRound[lbMIdx].p1 ? "p2" : "p1";
-        b.lbRounds = b.lbRounds.map((r, ri) => ri === lbRoundIdx ? r.map((m, mi) => mi === lbMIdx ? { ...m, [slot]: loser, status: m.p1 && m.p2 ? "PENDING" : "WAITING" } : m) : r);
-      }
-    }
-    return b;
-  }
-
-  function advanceLB(bracket, match, winner, loser) {
-    let b = { ...bracket };
-    const rIdx = match.round - 1;
-    const mIdx = parseInt(match.id.split("-M")[1]);
-
-    // Mark loser as eliminated
-    if (loser) {
-      setOutAnimIds(prev => [...prev, loser]);
-    }
-
-    const nextRIdx = rIdx + 1;
-    if (nextRIdx < b.lbRounds.length) {
-      const nextMIdx = Math.floor(mIdx / 2);
-      const slot = mIdx % 2 === 0 ? "p1" : "p2";
-      b.lbRounds = b.lbRounds.map((r, ri) => ri === nextRIdx ? r.map((m2, mi) => mi === nextMIdx ? { ...m2, [slot]: winner, status: m2.p1 && m2.p2 ? "PENDING" : "WAITING" } : m2) : r);
-    } else {
-      // LB finalist goes to Grand Final as p2
-      b.grandFinal = { ...b.grandFinal, p2: winner, status: b.grandFinal.p1 ? "PENDING" : "WAITING" };
-    }
-    return b;
-  }
-
-  const isAdmin = state.role === "ADMIN";
-
-  // ============================================================
-  // RENDER HELPERS
-  // ============================================================
-  const PlayerCard = ({ player, showDice = false, usedLanes = [], isThreePlayer = false, onDice, matchId }) => {
-    const isOut = outAnimIds.includes(player.id);
-    return (
-      <div className={`relative flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${isOut ? "border-red-700 bg-red-900/20" : "border-gray-700 bg-gray-900/60"}`}>
-        {player.jackpotNum !== null && (
-          <span className="text-xs font-black px-1 py-0 rounded" style={{ background: "#f5c518", color: "#000" }}>#{String(player.jackpotNum).padStart(2, "0")}</span>
-        )}
-        <span className="text-sm font-bold text-white truncate max-w-[100px]">{player.name}</span>
-        {showDice && onDice && (
-          <Dice size="sm" usedLanes={usedLanes} isThreePlayer={isThreePlayer}
-            onResult={(lane) => onDice(matchId, player.id, lane)}
-            disabled={!isAdmin && state.role === "GUEST"} />
-        )}
-        {isOut && <span className="absolute -top-1 -right-1 text-xs font-black px-1 rounded bg-red-600 text-white out-stamp">OUT</span>}
-      </div>
-    );
+    setTournament(t => ({ ...t, phase: 'bracket', matches }));
   };
 
-  // ---- BRACKET RENDER ----
-  const MatchBox = ({ match, compact = false }) => {
-    if (!match) return null;
-    const p1 = match.p1 ? getPlayerById(match.p1) : null;
-    const p2 = match.p2 ? getPlayerById(match.p2) : null;
-    const isActive = match.status === "PENDING" || match.status === "DICE";
-    const isDone = match.status === "DONE";
-    const isActiveEdit = activeScoreMatch === match.id;
-
-    return (
-      <div className={`rounded-lg border transition-all mb-1 ${isActive ? "border-yellow-400 match-glow" : isDone ? "border-green-700" : "border-gray-700"}`}
-        style={{ minWidth: compact ? 120 : 160, background: "#0d0d1a", padding: compact ? "4px 8px" : "6px 10px" }}>
-        <div className="text-xs font-bold mb-1" style={{ color: match.bracket === "WB" ? "#3b82f6" : match.bracket === "LB" ? "#a855f7" : "#f97316" }}>
-          {match.bracket}-R{match.round || "GF"}{match.isReset ? "(RESET)" : ""}
+  // --- VIEW COMPONENTS ---
+  if (!user) return (
+    <div className="login-container">
+      <div className="card" style={{ width: '400px' }}>
+        <h2 style={{ fontFamily: 'Orbitron', color: var(--gold), marginBottom: '20px', textAlign: 'center' }}>M4WD LOGIN</h2>
+        <div style={{ marginBottom: '20px' }}>
+          <p className="tab">ADMIN ACCESS</p>
+          <input className="input" type="password" placeholder="Mật mã Admin" onChange={e => setPassInput(e.target.value)} />
+          <button className="btn btn-gold w-full" onClick={loginAdmin}>ĐĂNG NHẬP ADMIN</button>
         </div>
-        <div className="flex items-center justify-between gap-1 mb-0.5">
-          <span className="text-xs text-white truncate" style={{ maxWidth: 80 }}>
-            {p1 ? `${p1.jackpotNum !== null ? "#" + String(p1.jackpotNum).padStart(2, "0") + " " : ""}${p1.name}` : "TBD"}
-          </span>
-          {isDone && <span className={`text-xs font-black ${match.winner === match.p1 ? "text-yellow-400" : "text-gray-500"}`}>{match.score1 ?? "-"}</span>}
-        </div>
-        <div className="flex items-center justify-between gap-1">
-          <span className="text-xs text-white truncate" style={{ maxWidth: 80 }}>
-            {p2 ? `${p2.jackpotNum !== null ? "#" + String(p2.jackpotNum).padStart(2, "0") + " " : ""}${p2.name}` : "TBD"}
-          </span>
-          {isDone && <span className={`text-xs font-black ${match.winner === match.p2 ? "text-yellow-400" : "text-gray-500"}`}>{match.score2 ?? "-"}</span>}
-        </div>
-        {isActive && isAdmin && (
-          <button onClick={() => handleBracketMatchAction(match)} className="mt-1 w-full text-xs py-0.5 rounded font-bold"
-            style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
-            {isActiveEdit ? "ĐANG NHẬP..." : "NHẬP KẾT QUẢ"}
-          </button>
-        )}
-        {isActiveEdit && (
-          <div className="mt-2 space-y-1">
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-400 w-12 truncate">{p1?.name || "P1"}</span>
-              <input type="number" min={0} max={3} className="w-10 text-center text-xs rounded bg-gray-800 border border-gray-600 text-white"
-                value={scoreInputs[match.p1] ?? ""} onChange={e => setScoreInputs(s => ({ ...s, [match.p1]: e.target.value }))} />
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-400 w-12 truncate">{p2?.name || "P2"}</span>
-              <input type="number" min={0} max={3} className="w-10 text-center text-xs rounded bg-gray-800 border border-gray-600 text-white"
-                value={scoreInputs[match.p2] ?? ""} onChange={e => setScoreInputs(s => ({ ...s, [match.p2]: e.target.value }))} />
-            </div>
-            <div className="flex gap-1">
-              <button onClick={() => submitBracketScores(match)} className="flex-1 text-xs py-0.5 rounded font-bold"
-                style={{ background: "#22c55e", color: "#000" }}>XÁC NHẬN</button>
-              <button onClick={() => setActiveScoreMatch(null)} className="flex-1 text-xs py-0.5 rounded font-bold bg-gray-700 text-white">HỦY</button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ============================================================
-  // PHASE RENDERS
-  // ============================================================
-
-  // === LANDING ===
-  if (state.phase === PHASES.LANDING) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(4px)} }
-          @keyframes slot-spin { 0%{filter:blur(4px);transform:scaleY(1.1)} 100%{filter:blur(0);transform:scaleY(1)} }
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
-          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
-          @keyframes fly-in { 0%{transform:translateX(-100px);opacity:0} 100%{transform:translateX(0);opacity:1} }
-          @keyframes champion-reveal { 0%{transform:scale(0) rotate(-180deg);opacity:0} 60%{transform:scale(1.2) rotate(5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
-          .shake{animation:shake 0.5s ease}
-          .slot-spin{animation:slot-spin 0.1s ease infinite}
-          .match-glow{animation:glow-pulse 2s infinite}
-          .out-stamp{animation:out-stamp 0.5s ease forwards}
-          .champion-anim{animation:champion-reveal 1s ease forwards}
-        `}</style>
-        <div className="mb-8 text-center">
-          <div className="text-5xl font-black mb-2" style={{ color: "#f5c518", textShadow: "0 0 20px #f5c518", letterSpacing: 4 }}>
-            🏎 UnELAB
-          </div>
-          <div className="text-xl font-bold text-white tracking-widest">MINI 4WD TOURNAMENT</div>
-          <div className="text-sm text-gray-500 mt-1">HỆ THỐNG QUẢN LÝ GIẢI ĐẤU</div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl">
-          {/* Admin */}
-          <div className="flex-1 rounded-xl border p-6" style={{ borderColor: "#f5c518", background: "#0d0d1a" }}>
-            <div className="text-center mb-4">
-              <span className="text-2xl">👑</span>
-              <div className="text-lg font-black text-yellow-400 tracking-widest">ADMIN</div>
-            </div>
-            <input type="password" placeholder="Mật khẩu..." value={adminPass} onChange={e => { setAdminPass(e.target.value); setPassError(false); }}
-              onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
-              className={`w-full px-3 py-2 rounded bg-gray-900 border text-white text-center mb-2 ${passError ? "border-red-500 shake" : "border-gray-600"} ${shakePass ? "shake" : ""}`}
-              style={{ fontFamily: "monospace" }} />
-            {passError && <div className="text-red-400 text-xs text-center mb-2">❌ Sai mật khẩu!</div>}
-            <button onClick={handleAdminLogin} className="w-full py-2 rounded font-black tracking-widest transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
-              ĐĂNG NHẬP
-            </button>
-          </div>
-
-          {/* Guest */}
-          <div className="flex-1 rounded-xl border p-6" style={{ borderColor: "#e63946", background: "#0d0d1a" }}>
-            <div className="text-center mb-4">
-              <span className="text-2xl">🎮</span>
-              <div className="text-lg font-black tracking-widest" style={{ color: "#e63946" }}>KHÁN GIẢ / THÍ SINH</div>
-            </div>
-            <input placeholder="Mã phòng (Room Code)..." value={guestRoom} onChange={e => setGuestRoom(e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 rounded bg-gray-900 border border-gray-600 text-white text-center mb-2 uppercase"
-              style={{ fontFamily: "monospace", letterSpacing: 4 }} />
-            <button onClick={handleGuestJoin} className="w-full py-2 rounded font-black tracking-widest transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
-              VÀO PHÒNG
-            </button>
-          </div>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+          <p className="tab">GUEST ACCESS</p>
+          <input className="input" placeholder="Tên của bạn" onChange={e => setGuestName(e.target.value)} />
+          <button className="btn btn-outline w-full" onClick={loginGuest}>VÀO XEM GIẢI</button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // === LOBBY ===
-  if (state.phase === PHASES.LOBBY) {
-    return (
-      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(4px)} }
-          @keyframes slot-spin { 0%{filter:blur(4px);transform:scaleY(1.1)} 100%{filter:blur(0);transform:scaleY(1)} }
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
-          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
-          .match-glow{animation:glow-pulse 2s infinite}
-          .out-stamp{animation:out-stamp 0.5s ease forwards}
-        `}</style>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="text-2xl font-black" style={{ color: "#f5c518" }}>🏎 UnELAB</div>
-            <div className="text-xs text-gray-500">MINI 4WD TOURNAMENT</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-gray-500">MÃ PHÒNG</div>
-            <div className="text-2xl font-black tracking-widest" style={{ color: "#e63946", textShadow: "0 0 10px #e63946" }}>{state.roomCode}</div>
-          </div>
-          <div>
-            <div className={`text-xs px-2 py-1 rounded font-bold ${isAdmin ? "text-yellow-400 border border-yellow-400" : "text-red-400 border border-red-400"}`}>
-              {isAdmin ? "👑 ADMIN" : "🎮 GUEST"}
-            </div>
-            <button onClick={() => dispatch({ type: "RESET" })} className="text-xs text-gray-600 hover:text-gray-400 mt-1 block">← Thoát</button>
-          </div>
+  return (
+    <div>
+      <header className="header">
+        <div className="logo">SGMS MINI 4WD</div>
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          {tournament && <span style={{ color: var(--gold) }}>CODE: {tournament.code}</span>}
+          <span className="lane-badge">{user.role.toUpperCase()}: {user.name}</span>
+          <button className="btn btn-outline" onClick={() => setUser(null)} style={{ padding: '5px 10px' }}>THOÁT</button>
         </div>
+      </header>
 
-        <div className="max-w-2xl mx-auto space-y-4">
-          {/* Guest register */}
-          {!isAdmin && !state.listLocked && (
-            <div className="rounded-xl border border-blue-700 p-4" style={{ background: "#0d0d1a" }}>
-              <div className="text-sm font-bold text-blue-400 mb-2">🎯 ĐĂNG KÝ THI ĐẤU</div>
-              <div className="flex gap-2">
-                <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Tên của bạn..."
-                  className="flex-1 px-3 py-2 rounded bg-gray-900 border border-gray-600 text-white text-sm" />
-                <button onClick={handleGuestRegister} className="px-4 py-2 rounded font-bold text-sm" style={{ background: "#3b82f6", color: "#fff" }}>ĐĂNG KÝ</button>
-              </div>
+      <main style={{ padding: '30px' }}>
+        {!tournament ? (
+          <div className="card" style={{ maxWidth: '500px', margin: 'auto', textAlign: 'center' }}>
+            <h3 className="tab">TẠO GIẢI ĐẤU MỚI</h3>
+            <input id="tName" className="input" placeholder="Tên giải đấu (VD: SGMS CUP 2024)" />
+            <button className="btn btn-gold" onClick={() => createTournament(document.getElementById('tName').value)}>KHỞI TẠO</button>
+          </div>
+        ) : (
+          <>
+            <div className="tabs">
+              <div className={`tab ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>THÔNG TIN</div>
+              <div className={`tab ${activeTab === 'play' ? 'active' : ''}`} onClick={() => setActiveTab('play')}>THI ĐẤU</div>
+              <div className={`tab ${activeTab === 'lb' ? 'active' : ''}`} onClick={() => setActiveTab('lb')}>BẢNG ĐIỂM</div>
             </div>
-          )}
 
-          {/* Player list */}
-          <div className="rounded-xl border border-gray-700 p-4" style={{ background: "#0d0d1a" }}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-bold text-white">👥 DANH SÁCH ({state.players.length} người)</div>
-              {isAdmin && !state.listLocked && (
-                <div className="flex gap-2">
-                  <div className="flex gap-1">
-                    <input value={newPlayerName} onChange={e => setNewPlayerName(e.target.value)} placeholder="Thêm thí sinh..."
-                      onKeyDown={e => e.key === "Enter" && newPlayerName.trim() && (dispatch({ type: "ADD_PLAYER", payload: newPlayerName.trim() }), setNewPlayerName(""))}
-                      className="px-2 py-1 rounded text-xs bg-gray-800 border border-gray-600 text-white" />
-                    <button onClick={() => { if (newPlayerName.trim()) { dispatch({ type: "ADD_PLAYER", payload: newPlayerName.trim() }); setNewPlayerName(""); } }}
-                      className="px-2 py-1 rounded text-xs font-bold" style={{ background: "#f5c518", color: "#000" }}>+</button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="space-y-1 max-h-64 overflow-y-auto">
-              {state.players.map((p, i) => (
-                <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded border border-gray-800">
-                  <span className="text-gray-500 text-xs w-5">{i + 1}.</span>
-                  {editingId === p.id ? (
-                    <input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 text-sm bg-gray-800 border border-yellow-400 rounded px-1 text-white" autoFocus
-                      onKeyDown={e => { if (e.key === "Enter") { dispatch({ type: "UPDATE_PLAYER_NAME", id: p.id, name: editName }); setEditingId(null); } }} />
-                  ) : (
-                    <span className="flex-1 text-sm text-white">{p.name}</span>
-                  )}
-                  {isAdmin && !state.listLocked && (
-                    <div className="flex gap-1">
-                      <button onClick={() => { setEditingId(p.id); setEditName(p.name); }} className="text-xs text-yellow-500 hover:text-yellow-300">✏️</button>
-                      <button onClick={() => dispatch({ type: "REMOVE_PLAYER", id: p.id })} className="text-xs text-red-500 hover:text-red-300">🗑️</button>
+            {/* TAB: THÔNG TIN / ĐĂNG KÝ */}
+            {activeTab === 'info' && (
+              <div className="card">
+                <h3>{tournament.name}</h3>
+                <p style={{ color: 'var(--text-dim)', marginBottom: '20px' }}>Trạng thái: {tournament.phase.toUpperCase()}</p>
+                
+                {tournament.phase === 'registration' && (
+                  <div>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                      <input id="pName" className="input" placeholder="Tên racer" style={{ margin: 0 }} />
+                      <button className="btn btn-gold" onClick={() => {
+                        addPlayer(document.getElementById('pName').value);
+                        document.getElementById('pName').value = '';
+                      }}>ĐĂNG KÝ</button>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Admin controls */}
-          {isAdmin && (
-            <div className="space-y-2">
-              {!state.listLocked ? (
-                <button onClick={() => { if (state.players.length >= 8) dispatch({ type: "LOCK_LIST" }); }}
-                  disabled={state.players.length < 8}
-                  className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105 disabled:opacity-40"
-                  style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
-                  🔒 KHÓA DANH SÁCH ({state.players.length} người)
-                </button>
-              ) : (
-                <button onClick={() => dispatch({ type: "SET_PHASE", payload: PHASES.JACKPOT })}
-                  className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105"
-                  style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
-                  🎰 BẮT ĐẦU QUAY SỐ MAY MẮN →
-                </button>
-              )}
-            </div>
-          )}
-          {!isAdmin && state.listLocked && (
-            <div className="text-center text-yellow-400 font-bold text-sm animate-pulse">⏳ Đang chờ Admin bắt đầu giải đấu...</div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // === JACKPOT ===
-  if (state.phase === PHASES.JACKPOT) {
-    const usedNums = state.players.map(p => p.jackpotNum).filter(n => n !== null);
-    return (
-      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes slot-spin { 0%{filter:blur(4px)} 100%{filter:blur(0)} }
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
-          .slot-spin{animation:slot-spin 0.1s ease infinite}
-          .match-glow{animation:glow-pulse 2s infinite}
-        `}</style>
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={() => dispatch({ type: "SET_PHASE", payload: PHASES.LOBBY })} className="text-gray-500 text-sm hover:text-gray-300">← Quay lại</button>
-          <div className="text-lg font-black text-yellow-400">🎰 QUAY SỐ MAY MẮN</div>
-          <div className="text-xs text-gray-500">{state.players.filter(p => p.jackpotNum !== null).length}/{state.players.length}</div>
-        </div>
-
-        <div className="max-w-2xl mx-auto space-y-3">
-          {state.players.map(p => (
-            <div key={p.id} className={`rounded-xl border p-4 transition-all ${p.jackpotNum !== null ? "border-green-700" : spinningFor === p.id ? "border-yellow-400 match-glow" : "border-gray-700"}`}
-              style={{ background: "#0d0d1a" }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-bold text-white">{p.name}</div>
-                  {p.jackpotNum !== null && (
-                    <div className="text-xl font-black text-green-400 mt-1">#{String(p.jackpotNum).padStart(2, "0")}</div>
-                  )}
-                </div>
-                {p.jackpotNum === null && spinningFor === p.id ? (
-                  <SlotMachine onResult={(num) => handleJackpotResult(p.id, num)} usedNumbers={usedNums} autoSpin />
-                ) : p.jackpotNum === null ? (
-                  (isAdmin || true) && (
-                    <button onClick={() => setSpinningFor(p.id)}
-                      className="px-4 py-2 rounded font-bold text-sm transition-all hover:scale-105"
-                      style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
-                      🎰 QUAY SỐ
-                    </button>
-                  )
-                ) : (
-                  <div className="text-green-400 text-2xl">✅</div>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {allJackpotsAssigned && isAdmin && (
-            <button onClick={() => {
-              const bs = getBracketSize(state.players.length);
-              if (bs?.direct) {
-                dispatch({ type: "SET_PHASE", payload: PHASES.SEEDING });
-              } else {
-                dispatch({ type: "INIT_QUALIFIER_ROUND" });
-                dispatch({ type: "SET_PHASE", payload: PHASES.QUALIFIER });
-              }
-            }} className="w-full py-3 rounded-lg font-black tracking-widest mt-4 transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
-              {getBracketSize(state.players.length)?.direct ? "🏆 BẮT ĐẦU XẾP CẶP →" : "⚡ BẮT ĐẦU VÒNG LOẠI →"}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // === QUALIFIER ===
-  if (state.phase === PHASES.QUALIFIER) {
-    const roundMatches = getCurrentRoundMatches();
-    const allRoundDone = roundMatches.every(m => m.status === "DONE");
-    return (
-      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
-          .out-stamp{animation:out-stamp 0.5s ease forwards}
-          .match-glow{animation:glow-pulse 2s infinite}
-        `}</style>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-lg font-black text-yellow-400">⚡ VÒNG LOẠI</div>
-            <div className="text-xs text-gray-500">VÒNG {state.currentQualRound}/{state.qualifierRounds}</div>
-          </div>
-          {isAdmin && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">SỐ VÒNG:</span>
-              <button onClick={() => dispatch({ type: "SET_QUALIFIER_ROUNDS", payload: Math.max(1, state.qualifierRounds - 1) })} className="w-6 h-6 rounded bg-gray-700 text-white text-sm">-</button>
-              <span className="text-sm font-bold text-white w-4 text-center">{state.qualifierRounds}</span>
-              <button onClick={() => dispatch({ type: "SET_QUALIFIER_ROUNDS", payload: Math.min(10, state.qualifierRounds + 1) })} className="w-6 h-6 rounded bg-gray-700 text-white text-sm">+</button>
-            </div>
-          )}
-        </div>
-
-        {/* Rankings */}
-        <div className="max-w-4xl mx-auto mb-4 p-3 rounded-xl border border-gray-700" style={{ background: "#0d0d1a" }}>
-          <div className="text-xs font-bold text-gray-400 mb-2">BẢNG XẾP HẠNG TẠM THỜI</div>
-          <div className="flex flex-wrap gap-2">
-            {[...state.players].sort((a, b) => b.totalScore - a.totalScore).map((p, i) => (
-              <div key={p.id} className={`flex items-center gap-1 px-2 py-1 rounded text-xs border ${outAnimIds.includes(p.id) ? "border-red-700 bg-red-900/20" : i < (getBracketSize(state.players.length)?.size || 8) ? "border-green-700 bg-green-900/10" : "border-gray-700"}`}>
-                <span className="text-gray-500">{i + 1}.</span>
-                <span className="font-bold text-white">{p.name}</span>
-                <span className="font-black text-yellow-400">{p.totalScore}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto space-y-4">
-          {roundMatches.map(match => {
-            const allDice = match.players.every(p => p.lane !== null);
-            const allScores = match.players.every(p => p.score !== null);
-            return (
-              <div key={match.id} className={`rounded-xl border p-4 transition-all ${match.status === "DONE" ? "border-green-700" : match.status === "SCORE" ? "border-blue-500" : "border-yellow-500 match-glow"}`}
-                style={{ background: "#0d0d1a" }}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs font-bold text-yellow-400">TRẬN {match.id} ({match.size} NGƯỜI)</div>
-                  {match.status === "DONE" && <span className="text-xs font-bold text-green-400">✅ XONG</span>}
-                </div>
-                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${match.size}, 1fr)` }}>
-                  {match.players.map(mp => {
-                    const p = getPlayerById(mp.id);
-                    const usedLanes = match.players.filter(x => x.lane !== null && x.id !== mp.id).map(x => x.lane);
-                    return (
-                      <div key={mp.id} className="flex flex-col items-center gap-2 p-2 rounded-lg border border-gray-700">
-                        <div className="text-xs font-bold text-white text-center">{p?.name}</div>
-                        {p?.jackpotNum !== null && <div className="text-xs px-1 rounded" style={{ background: "#f5c518", color: "#000" }}>#{String(p?.jackpotNum).padStart(2, "0")}</div>}
-                        {mp.lane !== null ? (
-                          <div className="text-xs font-bold text-green-400">LÀN {mp.lane}</div>
-                        ) : (
-                          <Dice size="sm" usedLanes={usedLanes} isThreePlayer={match.size === 3}
-                            onResult={(lane) => handleQualDice(match.id, mp.id, lane)}
-                            disabled={!isAdmin} />
-                        )}
-                        {match.status === "SCORE" || match.status === "DONE" ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="text-xs text-gray-400">Điểm</div>
-                            {match.status === "SCORE" && isAdmin && mp.score === null ? (
-                              <input type="number" min={0} max={3} className="w-12 text-center text-sm rounded bg-gray-800 border border-yellow-400 text-white"
-                                onChange={e => handleQualScore(match.id, mp.id, parseInt(e.target.value))} placeholder="0-3" />
-                            ) : (
-                              <div className={`text-lg font-black ${mp.score !== null ? "text-yellow-400" : "text-gray-600"}`}>{mp.score ?? "-"}</div>
-                            )}
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-                {isAdmin && match.status !== "DONE" && (
-                  <div className="mt-3 flex gap-2">
-                    {allDice && match.status === "DICE" && (
-                      <button onClick={() => dispatch({ type: "SET_QUAL_MATCH_STATUS", matchId: match.id, status: "SCORE" })}
-                        className="flex-1 py-2 rounded text-xs font-bold" style={{ background: "#3b82f6", color: "#fff" }}>
-                        ✅ XÁC NHẬN LÀN - NHẬP ĐIỂM
-                      </button>
-                    )}
-                    {match.status === "SCORE" && allScores && (
-                      <button onClick={() => dispatch({ type: "SET_QUAL_MATCH_STATUS", matchId: match.id, status: "DONE" })}
-                        className="flex-1 py-2 rounded text-xs font-bold" style={{ background: "#22c55e", color: "#000" }}>
-                        ✅ XÁC NHẬN ĐIỂM
-                      </button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                      {tournament.players.map(p => (
+                        <div key={p.id} className="player-slot" style={{ background: 'var(--bg3)', borderRadius: '4px' }}>
+                          {p.name}
+                          {user.role === 'admin' && <button onClick={() => setTournament(t => ({ ...t, players: t.players.filter(pl => pl.id !== p.id) }))} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer' }}>✕</button>}
+                        </div>
+                      ))}
+                    </div>
+                    {user.role === 'admin' && tournament.players.length >= 8 && (
+                      <button className="btn btn-gold" style={{ marginTop: '30px', width: '100%' }} onClick={() => setTournament(t => ({ ...t, phase: 'jackpot' }))}>KHÓA DANH SÁCH & QUAY ID</button>
                     )}
                   </div>
                 )}
-              </div>
-            );
-          })}
 
-          {isAdmin && allRoundDone && (
-            <button onClick={handleFinishQualRound} className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
-              {state.currentQualRound >= state.qualifierRounds ? "🏆 KẾT THÚC VÒNG LOẠI - XẾP HẠNG →" : `➡️ VÒNG ${state.currentQualRound + 1} →`}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // === SEEDING ===
-  if (state.phase === PHASES.SEEDING) {
-    const bs = getBracketSize(state.players.length);
-    const totalPairs = (bs?.size || 8) / 2;
-    const allSeeded = state.seedingPairs.length >= totalPairs;
-    const seedPlayers = state.advancedPlayers.length > 0 ? state.advancedPlayers : state.players;
-    const usedInSeeding = state.seedingPairs.flatMap(pair => pair.map(p => p?.jackpotNum)).filter(n => n !== null);
-    const availableNums = seedPlayers.filter(p => !usedInSeeding.includes(p.jackpotNum)).map(p => p.jackpotNum).filter(n => n !== null);
-
-    return (
-      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes slot-spin { 0%{filter:blur(4px)} 100%{filter:blur(0)} }
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
-          .slot-spin{animation:slot-spin 0.1s ease infinite}
-          .match-glow{animation:glow-pulse 2s infinite}
-        `}</style>
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-lg font-black text-yellow-400">🎰 XẾP CẶP BẢNG ĐẤU</div>
-          <div className="text-sm text-gray-400">{state.seedingPairs.length}/{totalPairs} CẶP</div>
-        </div>
-
-        <div className="max-w-3xl mx-auto">
-          {/* Current seeding spinner */}
-          {!allSeeded && isAdmin && (
-            <div className="rounded-xl border border-yellow-500 match-glow p-6 mb-6" style={{ background: "#0d0d1a" }}>
-              <div className="text-center text-sm font-bold text-yellow-400 mb-4">CẶP #{state.seedingPairs.length + 1}</div>
-              <div className="flex justify-center gap-8">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-xs text-gray-400">THÍ SINH A</div>
-                  <SlotMachine key={`s1-${state.seedingPairs.length}`} onResult={handleSeedSpin1Result} usedNumbers={usedInSeeding} />
-                  {dualSpin1 !== null && (
-                    <div className="text-sm font-bold text-green-400">{seedPlayers.find(p => p.jackpotNum === dualSpin1)?.name || "?"}</div>
-                  )}
-                </div>
-                <div className="flex items-center text-3xl text-gray-600 font-black">VS</div>
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-xs text-gray-400">THÍ SINH B</div>
-                  {dualSpin1 !== null ? (
-                    <SlotMachine key={`s2-${state.seedingPairs.length}-${dualSpin1}`} onResult={handleSeedSpin2Result} usedNumbers={[...usedInSeeding, dualSpin1]} />
-                  ) : (
-                    <div className="text-gray-600 text-sm text-center">Quay A trước</div>
-                  )}
-                  {dualSpin2 !== null && (
-                    <div className="text-sm font-bold text-green-400">{seedPlayers.find(p => p.jackpotNum === dualSpin2)?.name || "?"}</div>
-                  )}
-                </div>
-              </div>
-              {dualSpinDone && currentSeedPair[0] && currentSeedPair[1] && (
-                <button onClick={confirmSeedPair} className="mt-4 w-full py-2 rounded font-black" style={{ background: "#22c55e", color: "#000" }}>
-                  ✅ XÁC NHẬN CẶP ĐÔI NÀY
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Confirmed pairs */}
-          <div className="space-y-2 mb-4">
-            {state.seedingPairs.map((pair, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-2 rounded-lg border border-green-700" style={{ background: "#0d1a0d" }}>
-                <span className="text-xs text-gray-400 w-4">{i + 1}</span>
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="text-xs px-1 rounded font-black" style={{ background: "#f5c518", color: "#000" }}>#{String(pair[0]?.jackpotNum).padStart(2, "0")}</span>
-                  <span className="text-sm font-bold text-white">{pair[0]?.name}</span>
-                </div>
-                <span className="text-gray-600 font-black">VS</span>
-                <div className="flex items-center gap-2 flex-1 justify-end">
-                  <span className="text-sm font-bold text-white">{pair[1]?.name}</span>
-                  <span className="text-xs px-1 rounded font-black" style={{ background: "#f5c518", color: "#000" }}>#{String(pair[1]?.jackpotNum).padStart(2, "0")}</span>
-                </div>
-                <span className="text-green-400">✅</span>
-              </div>
-            ))}
-          </div>
-
-          {allSeeded && isAdmin && (
-            <button onClick={initBracket} className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
-              🏆 XÁC NHẬN BẢNG ĐẤU - BẮT ĐẦU →
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // === BRACKET ===
-  if (state.phase === PHASES.BRACKET) {
-    const { wbRounds, lbRounds, grandFinal, grandFinalReset } = state.bracket || { wbRounds: [], lbRounds: [], grandFinal: null, grandFinalReset: null };
-
-    return (
-      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
-          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
-          .match-glow{animation:glow-pulse 2s infinite}
-          .out-stamp{animation:out-stamp 0.5s ease forwards}
-        `}</style>
-
-        {champAnim && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.9)" }}>
-            <div className="text-center animate-bounce">
-              <div className="text-6xl mb-4">🏆</div>
-              <div className="text-2xl font-black text-yellow-400">VÔ ĐỊCH!</div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-lg font-black text-yellow-400">🏆 BẢNG ĐẤU LOẠI KÉP</div>
-          <div className={`text-xs px-2 py-1 rounded font-bold ${isAdmin ? "text-yellow-400 border border-yellow-400" : "text-red-400 border border-red-400"}`}>
-            {isAdmin ? "👑 ADMIN" : "🎮 GUEST"}
-          </div>
-        </div>
-
-        {/* Score Modal */}
-        {activeScoreMatch && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}>
-            {(() => {
-              const allMatches = [...wbRounds.flat(), ...lbRounds.flat(), grandFinal, grandFinalReset].filter(Boolean);
-              const match = allMatches.find(m => m.id === activeScoreMatch);
-              if (!match) return null;
-              const p1 = match.p1 ? getPlayerById(match.p1) : null;
-              const p2 = match.p2 ? getPlayerById(match.p2) : null;
-              return (
-                <div className="rounded-xl border border-yellow-400 p-6 w-full max-w-sm" style={{ background: "#0d0d1a" }}>
-                  <div className="text-sm font-black text-yellow-400 mb-4 text-center">{match.id} - NHẬP KẾT QUẢ</div>
-
-                  {/* Dice for lanes */}
-                  <div className="flex justify-around mb-4">
-                    {[p1, p2].map((p, pi) => {
-                      if (!p) return null;
-                      const lane = pi === 0 ? match.lane1 : match.lane2;
-                      const usedLanes = [match.lane1, match.lane2].filter(Boolean);
-                      return (
-                        <div key={p.id} className="flex flex-col items-center gap-1">
-                          <div className="text-xs text-white font-bold">{p.name}</div>
-                          {lane ? (
-                            <div className="text-xs text-green-400 font-bold">LÀN {lane}</div>
-                          ) : (
-                            <Dice size="sm" usedLanes={usedLanes.filter((_, i) => i !== pi)} isThreePlayer={false}
-                              onResult={(l) => {
-                                dispatch({ type: "UPDATE_BRACKET_MATCH", matchId: match.id, field: pi === 0 ? "lane1" : "lane2", value: l });
-                              }} disabled={!isAdmin} />
+                {/* PHASE: JACKPOT */}
+                {tournament.phase === 'jackpot' && (
+                  <div style={{ textAlign: 'center' }}>
+                    <h2 className="tab">QUAY SỐ JACKPOT ID</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+                      {tournament.players.map(p => (
+                        <div key={p.id} className="card">
+                          <p>{p.name}</p>
+                          <div className="jackpot-num">{p.jackpotId || '??'}</div>
+                          {!p.jackpotId && (user.role === 'admin' || user.name === p.name) && (
+                            <button className="btn btn-gold btn-sm" onClick={() => {
+                              const id = Math.floor(Math.random() * 90 + 10);
+                              setTournament(t => ({
+                                ...t,
+                                players: t.players.map(pl => pl.id === p.id ? { ...pl, jackpotId: id } : pl)
+                              }));
+                            }}>QUAY</button>
                           )}
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
+                    {user.role === 'admin' && tournament.players.every(p => p.jackpotId) && (
+                      <button className="btn btn-gold" style={{ marginTop: '30px' }} onClick={startQualifiers}>BẮT ĐẦU VÒNG LOẠI</button>
+                    )}
                   </div>
+                )}
+              </div>
+            )}
 
-                  {/* Scores */}
-                  <div className="space-y-2 mb-4">
-                    {[p1, p2].map((p, pi) => (
-                      p && <div key={p.id} className="flex items-center gap-2">
-                        <span className="text-sm text-white flex-1">{p.name}</span>
-                        <div className="flex gap-1">
-                          {[0, 1, 2, 3].map(s => (
-                            <button key={s} onClick={() => setScoreInputs(prev => ({ ...prev, [p.id]: s }))}
-                              className={`w-8 h-8 rounded font-black text-sm transition-all ${scoreInputs[p.id] === s ? "scale-110" : ""}`}
-                              style={{ background: scoreInputs[p.id] === s ? "#f5c518" : "#333", color: scoreInputs[p.id] === s ? "#000" : "#fff" }}>
-                              {s}
-                            </button>
-                          ))}
+            {/* TAB: THI ĐẤU (QUALIFIER & BRACKET) */}
+            {activeTab === 'play' && (
+              <div className="bracket-wrapper">
+                {tournament.matches.map((m, mIdx) => (
+                  <div key={m.id} className={`match-box ${!m.isComplete ? 'active' : ''}`}>
+                    <div style={{ padding: '5px', fontSize: '0.7rem', color: var(--gold), textAlign: 'center', borderBottom: '1px solid var(--border)' }}>MATCH {mIdx + 1}</div>
+                    {m.players.map(p => (
+                      <div key={p.id} className={`player-slot ${m.isComplete && p.matchScore === Math.max(...m.players.map(pl=>pl.matchScore)) ? 'winner' : ''}`}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="lane-badge">{p.lane || '?'}</span>
+                          <span>{p.name}</span>
+                        </div>
+                        
+                        {/* Control logic */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {!p.lane && (user.role === 'admin' || user.name === p.name) && (
+                            <div className="dice" onClick={() => rollDice(m.id, p.id)}>🎲</div>
+                          )}
+                          {user.role === 'admin' && !m.isComplete ? (
+                            <select onChange={(e) => updateScore(m.id, p.id, e.target.value)} style={{ background: '#000', color: '#fff', border: '1px solid var(--gold)' }}>
+                              <option value="0">0</option>
+                              <option value="1">1</option>
+                              <option value="2">2</option>
+                              <option value="3">3</option>
+                            </select>
+                          ) : (
+                            <span style={{ fontWeight: 'bold' }}>{p.matchScore}</span>
+                          )}
                         </div>
                       </div>
                     ))}
+                    {user.role === 'admin' && !m.isComplete && m.players.every(p => p.lane !== null) && (
+                      <button className="btn btn-gold" style={{ width: '100%', fontSize: '0.7rem' }} onClick={() => completeMatch(m.id)}>XÁC NHẬN VÁN</button>
+                    )}
                   </div>
+                ))}
+                
+                {user.role === 'admin' && tournament.phase === 'qualifier' && tournament.matches.every(m => m.isComplete) && (
+                  <button className="btn btn-gold" onClick={finalizeQualifiers}>TỔNG KẾT VÒNG LOẠI</button>
+                )}
 
-                  <div className="flex gap-2">
-                    <button onClick={() => submitBracketScores(match)} className="flex-1 py-2 rounded font-black" style={{ background: "#22c55e", color: "#000" }}>
-                      ✅ XÁC NHẬN
-                    </button>
-                    <button onClick={() => setActiveScoreMatch(null)} className="flex-1 py-2 rounded font-black bg-gray-700 text-white">HỦY</button>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        <div className="overflow-x-auto pb-4">
-          {/* Grand Final */}
-          {(grandFinal?.p1 || grandFinal?.p2) && (
-            <div className="mb-6 flex flex-col items-center">
-              <div className="text-lg font-black text-orange-400 mb-2">🏆 CHUNG KẾT</div>
-              <div className="flex gap-4">
-                <MatchBox match={grandFinal} />
-                {grandFinalReset?.status !== "WAITING" && grandFinalReset?.p1 && (
-                  <div>
-                    <div className="text-xs text-orange-400 mb-1 text-center">VÁN LẠI</div>
-                    <MatchBox match={grandFinalReset} />
+                {/* BRACKET SEEDING PHASE */}
+                {tournament.phase === 'bracket_seeding' && (
+                  <div style={{ textAlign: 'center', width: '100%' }}>
+                    <h2 className="tab">KẾT QUẢ VÒNG LOẠI - TOP {getBracketTarget(tournament.players.length)}</h2>
+                    <div className="card" style={{ maxWidth: '400px', margin: 'auto' }}>
+                      {tournament.players.filter(p => p.status === 'active').map(p => (
+                        <div key={p.id} className="player-slot winner">#{p.jackpotId} {p.name} - {p.score}đ</div>
+                      ))}
+                    </div>
+                    {user.role === 'admin' && (
+                      <button className="btn btn-gold" style={{ marginTop: '20px' }} onClick={startBracket}>QUAY JACKPOT CẶP ĐẤU & BẮT ĐẦU</button>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Winners Bracket */}
-          <div className="mb-6">
-            <div className="text-sm font-black text-blue-400 mb-2">🔵 NHÁNH THẮNG (Winners Bracket)</div>
-            <div className="flex gap-4 items-start">
-              {wbRounds.map((round, ri) => (
-                <div key={ri} className="flex flex-col gap-2">
-                  <div className="text-xs text-blue-300 text-center mb-1 font-bold">WB-R{ri + 1}</div>
-                  {round.map(match => <MatchBox key={match.id} match={match} />)}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Losers Bracket */}
-          <div>
-            <div className="text-sm font-black text-purple-400 mb-2">🟣 NHÁNH THUA (Losers Bracket)</div>
-            <div className="flex gap-4 items-start">
-              {lbRounds.map((round, ri) => (
-                <div key={ri} className="flex flex-col gap-2">
-                  <div className="text-xs text-purple-300 text-center mb-1 font-bold">LB-R{ri + 1}</div>
-                  {round.map(match => <MatchBox key={match.id} match={match} />)}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Player standings */}
-        <div className="mt-6 rounded-xl border border-gray-700 p-4" style={{ background: "#0d0d1a" }}>
-          <div className="text-xs font-bold text-gray-400 mb-2">TRẠNG THÁI THÍ SINH</div>
-          <div className="flex flex-wrap gap-2">
-            {state.players.map(p => (
-              <div key={p.id} className={`flex items-center gap-1 px-2 py-1 rounded text-xs border ${outAnimIds.includes(p.id) || p.status === "OUT" ? "border-red-700 bg-red-900/20" : "border-green-700 bg-green-900/10"}`}>
-                {p.jackpotNum !== null && <span className="font-black" style={{ color: "#f5c518" }}>#{String(p.jackpotNum).padStart(2, "0")}</span>}
-                <span className="text-white">{p.name}</span>
-                {(outAnimIds.includes(p.id) || p.status === "OUT") && <span className="out-stamp text-red-400 font-black text-xs">OUT</span>}
+            {/* TAB: LEADERBOARD */}
+            {activeTab === 'lb' && (
+              <div className="card" style={{ maxWidth: '600px', margin: 'auto' }}>
+                <h3 className="tab" style={{ textAlign: 'center' }}>BẢNG XẾP HẠNG TỔNG</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                  <thead>
+                    <tr style={{ color: 'var(--gold)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '10px' }}>ID</th>
+                      <th>RACER</th>
+                      <th>ĐIỂM</th>
+                      <th>TRẠNG THÁI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tournament.players.sort((a,b) => b.score - a.score).map(p => (
+                      <tr key={p.id} style={{ borderBottom: '1px solid var(--border)', opacity: p.status === 'out' ? 0.5 : 1 }}>
+                        <td style={{ padding: '12px' }}>{p.jackpotId}</td>
+                        <td style={{ fontWeight: 'bold' }}>{p.name}</td>
+                        <td style={{ color: 'var(--gold)' }}>{p.score}</td>
+                        <td>{p.status === 'out' ? <span className="out-badge">OUT</span> : <span style={{ color: 'var(--green)' }}>ACTIVE</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // === CHAMPION ===
-  if (state.phase === PHASES.CHAMPION) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
-        <style>{`
-          @keyframes champion-reveal { 0%{transform:scale(0) rotate(-180deg);opacity:0} 60%{transform:scale(1.2) rotate(5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
-          @keyframes confetti-fall { 0%{transform:translateY(-100px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
-          .champion-anim{animation:champion-reveal 1.5s ease forwards}
-        `}</style>
-        <div className="champion-anim text-center">
-          <div className="text-8xl mb-4">🏆</div>
-          <div className="text-4xl font-black mb-2" style={{ color: "#f5c518", textShadow: "0 0 40px #f5c518" }}>VÔ ĐỊCH!</div>
-          <div className="text-2xl font-black text-white mb-1">{state.champion?.name}</div>
-          {state.champion?.jackpotNum !== null && (
-            <div className="text-xl font-bold" style={{ color: "#e63946" }}>#{String(state.champion?.jackpotNum).padStart(2, "0")}</div>
-          )}
-          <div className="mt-6 text-gray-500 text-sm">🏎 UnELAB Mini 4WD Tournament Champion</div>
-          <button onClick={() => dispatch({ type: "RESET" })} className="mt-8 px-8 py-3 rounded-lg font-black tracking-widest" style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
-            🔄 GIẢI ĐẤU MỚI
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
 
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(App));
-  </script>
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
 </body>
 </html>
