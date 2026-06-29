@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SGMS Mini 4WD - Tournament Pro</title>
+  <title>SGMS Mini 4WD Tournament Manager</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -19,132 +19,123 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; overflow-x: hidden; }
 
-    /* Animations */
-    @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-    @keyframes pulse-gold { 0% { box-shadow: 0 0 5px var(--gold); } 50% { box-shadow: 0 0 20px var(--gold); } 100% { box-shadow: 0 0 5px var(--gold); } }
-
-    /* Login & Setup */
-    .login-container { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a2e 0%, #0a0a0f 100%); }
-    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-family: 'Orbitron'; transition: 0.3s; }
+    /* UI Components */
+    .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: var(--bg2); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; }
+    .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--gold); font-size: 1.5rem; letter-spacing: 3px; }
+    
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-family: 'Orbitron'; transition: 0.3s; font-size: 0.8rem; }
     .btn-gold { background: var(--gold); color: #000; }
-    .btn-gold:hover { background: #fff; box-shadow: 0 0 15px var(--gold); }
+    .btn-gold:disabled { background: var(--text-dim); cursor: not-allowed; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .input { background: var(--bg3); border: 1px solid var(--border); color: white; padding: 12px; borderRadius: 6px; width: 100%; margin-bottom: 15px; }
-
-    /* Bracket & Match */
-    .bracket-wrapper { display: flex; gap: 40px; padding: 20px; overflow-x: auto; min-height: 600px; }
-    .match-box { background: var(--bg3); border: 1px solid var(--border); width: 200px; border-radius: 8px; margin-bottom: 15px; position: relative; }
-    .match-box.active { border-color: var(--gold); animation: pulse-gold 2s infinite; }
-    .player-slot { padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-    .player-slot:last-child { border-bottom: none; }
-    .winner { color: var(--gold); font-weight: bold; background: rgba(245, 197, 24, 0.1); }
-    .lane-badge { font-family: 'Share Tech Mono'; font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; background: var(--border); }
-    .out-badge { border: 1px solid var(--red); color: var(--red); padding: 2px 5px; font-size: 0.7rem; font-weight: 900; }
-
-    /* Dice & Jackpot */
-    .dice { width: 40px; height: 40px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; cursor: pointer; border-radius: 8px; font-weight: 900; }
-    .jackpot-num { font-family: 'Orbitron'; font-size: 2rem; color: var(--gold); text-shadow: 0 0 10px var(--gold); }
-
-    /* Tabs */
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-    .tab { padding: 8px 16px; cursor: pointer; color: var(--text-dim); font-family: 'Orbitron'; font-size: 0.8rem; }
+    .input { background: var(--bg3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; width: 100%; outline: none; margin-bottom: 10px; }
+    
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .tab { padding: 10px 15px; cursor: pointer; color: var(--text-dim); font-family: 'Orbitron'; font-size: 0.75rem; }
     .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
 
-    .header { background: var(--bg2); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); }
-    .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--gold); font-size: 1.5rem; letter-spacing: 3px; }
+    /* Matching & Brackets */
+    .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .match-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .match-box.active { border-color: var(--gold); box-shadow: 0 0 15px rgba(245, 197, 24, 0.2); }
+    .match-header { padding: 5px 10px; background: rgba(255,255,255,0.05); font-size: 0.7rem; font-family: 'Orbitron'; color: var(--gold); display: flex; justify-content: space-between; }
+    
+    .player-row { padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .player-row:last-child { border-bottom: none; }
+    .winner { background: rgba(46, 204, 113, 0.1); }
+    .out-stamp { border: 1px solid var(--red); color: var(--red); padding: 2px 5px; font-size: 0.6rem; font-weight: 900; border-radius: 3px; }
+
+    .dice-btn { width: 35px; height: 35px; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; font-family: 'Orbitron'; font-weight: 900; color: var(--gold); }
+    .score-input { width: 50px; background: #000; border: 1px solid var(--border); color: var(--gold); text-align: center; font-weight: bold; padding: 5px; }
+    
+    .lane-badge { font-family: 'Share Tech Mono'; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .lane-1 { background: var(--red); color: white; }
+    .lane-2 { background: var(--gold); color: black; }
+    .lane-3 { background: var(--cyan); color: black; }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect } = React;
 
-// --- UTILS ---
+// --- Helper Functions ---
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
-const getBracketTarget = (n) => n < 16 ? 8 : (n < 32 ? 16 : 32);
+const getTargetSize = (n) => n < 16 ? 8 : (n < 32 ? 16 : 32);
 
 function App() {
-  const [user, setUser] = useState(null); // { role: 'admin'|'guest', name: string }
-  const [tournament, setTournament] = useState(null);
+  const [user, setUser] = useState(null);
+  const [tournament, setTournament] = useState(() => {
+    const saved = localStorage.getItem('m4wd_data');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [activeTab, setActiveTab] = useState('info');
   const [passInput, setPassInput] = useState('');
   const [guestName, setGuestName] = useState('');
 
-  // --- AUTH ---
+  // Lưu dữ liệu vào LocalStorage mỗi khi có thay đổi
+  useEffect(() => {
+    if (tournament) {
+      localStorage.setItem('m4wd_data', JSON.stringify(tournament));
+    }
+  }, [tournament]);
+
   const loginAdmin = () => {
     if (passInput === 'Phuong090') setUser({ role: 'admin', name: 'Admin' });
-    else alert('Sai mật mã!');
+    else alert('Mật khẩu sai!');
   };
 
   const loginGuest = () => {
-    if (!guestName.trim()) return alert('Nhập tên khách!');
-    setUser({ role: 'guest', name: guestName });
+    if (!guestName.trim()) return alert('Vui lòng nhập tên!');
+    setUser({ role: 'guest', name: guestName.trim() });
   };
 
-  const createTournament = (name) => {
-    const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+  const initTournament = (name) => {
     setTournament({
       name,
-      code,
       phase: 'registration', // registration -> jackpot -> qualifier -> bracket
       players: [],
-      isLocked: false,
-      qualifierRounds: 3,
-      currentRound: 0,
       matches: [],
-      matchHistory: []
+      history: []
     });
   };
 
   const addPlayer = (name) => {
-    if (tournament.players.length >= 64) return;
-    const newPlayer = {
-      id: Date.now() + Math.random(),
-      name,
-      jackpotId: null,
-      score: 0,
-      status: 'active', // active | out
-      lane: null
-    };
-    setTournament(t => ({ ...t, players: [...t.players, newPlayer] }));
+    if (tournament.players.some(p => p.name === name)) return alert('Tên đã tồn tại!');
+    const newP = { id: Date.now(), name, jackpotId: null, totalScore: 0, status: 'active', currentLane: null };
+    setTournament(t => ({ ...t, players: [...t.players, newP] }));
   };
 
-  // --- LOGIC: CHIA NHÓM VÒNG LOẠI (KHÔNG LẺ NGƯỜI) ---
-  const generateQualifierMatches = (players) => {
-    let pList = shuffle(players.filter(p => p.status === 'active'));
-    let matches = [];
+  // --- Logic Chia Bảng Vòng Loại (Không lẻ người) ---
+  const startQualifiers = () => {
+    let pList = shuffle(tournament.players.filter(p => p.status === 'active'));
+    let newMatches = [];
+    
     while (pList.length > 0) {
-      let groupSize = 3;
-      if (pList.length === 4) groupSize = 2; // Tránh lẻ 1
-      if (pList.length === 2) groupSize = 2;
-      
-      const group = pList.splice(0, groupSize);
-      matches.push({
-        id: 'M' + Math.random(),
-        players: group.map(p => ({ ...p, lane: null, matchScore: 0 })),
-        isComplete: false
+      let size = 3;
+      if (pList.length === 4 || pList.length === 2) size = 2; // Xử lý để không lẻ 1
+      const group = pList.splice(0, size);
+      newMatches.push({
+        id: 'Q-' + Math.random(),
+        players: group.map(p => ({ ...p, matchScore: 0, lane: null })),
+        isDone: false
       });
     }
-    return matches;
+    setTournament(t => ({ ...t, phase: 'qualifier', matches: newMatches }));
   };
 
-  const startQualifiers = () => {
-    const matches = generateQualifierMatches(tournament.players);
-    setTournament(t => ({ ...t, phase: 'qualifier', matches, currentRound: 1 }));
-  };
-
-  // --- LOGIC: XÚC XẮC LANE (2 NGƯỜI: 1,3 | 3 NGƯỜI: 1,2,3) ---
-  const rollDice = (matchId, playerId) => {
+  // --- Logic Xóc Xúc Xắc ---
+  const rollLane = (matchId, playerId) => {
     setTournament(t => {
       const match = t.matches.find(m => m.id === matchId);
       const playersInMatch = match.players;
-      const rolledLanes = playersInMatch.map(p => p.lane).filter(l => l !== null);
+      const rolled = playersInMatch.map(p => p.lane).filter(l => l !== null);
       
       let available = playersInMatch.length === 2 ? [1, 3] : [1, 2, 3];
-      available = available.filter(l => !rolledLanes.includes(l));
-
+      available = available.filter(l => !rolled.includes(l));
+      
       if (available.length === 0) return t;
       const result = available[Math.floor(Math.random() * available.length)];
 
@@ -158,80 +149,41 @@ function App() {
     });
   };
 
-  const updateScore = (matchId, playerId, score) => {
-    setTournament(t => ({
-      ...t,
-      matches: t.matches.map(m => m.id === matchId ? {
-        ...m,
-        players: m.players.map(p => p.id === playerId ? { ...p, matchScore: parseInt(score) } : p)
-      } : m)
-    }));
-  };
-
-  const completeMatch = (matchId) => {
+  const submitMatch = (matchId) => {
     setTournament(t => {
       const match = t.matches.find(m => m.id === matchId);
       const updatedPlayers = t.players.map(p => {
-        const pInMatch = match.players.find(pm => pm.id === p.id);
-        if (pInMatch) return { ...p, score: p.score + pInMatch.matchScore };
-        return p;
+        const pm = match.players.find(x => x.id === p.id);
+        return pm ? { ...p, totalScore: p.totalScore + pm.matchScore } : p;
       });
       return {
         ...t,
         players: updatedPlayers,
-        matches: t.matches.map(m => m.id === matchId ? { ...m, isComplete: true } : m)
+        matches: t.matches.map(m => m.id === matchId ? { ...m, isDone: true } : m)
       };
     });
   };
 
   const finalizeQualifiers = () => {
-    const target = getBracketTarget(tournament.players.length);
-    const sorted = [...tournament.players].sort((a,b) => b.score - a.score);
-    
-    const finalPlayers = sorted.map((p, idx) => ({
+    const target = getTargetSize(tournament.players.length);
+    const sorted = [...tournament.players].sort((a,b) => b.totalScore - a.totalScore);
+    const finalized = sorted.map((p, i) => ({
       ...p,
-      status: idx < target ? 'active' : 'out'
+      status: i < target ? 'active' : 'out'
     }));
-
-    setTournament(t => ({
-      ...t,
-      players: finalPlayers,
-      phase: 'bracket_seeding',
-      matches: []
-    }));
+    setTournament(t => ({ ...t, players: finalized, phase: 'bracket_ready', matches: [] }));
   };
 
-  // --- DOUBLE ELIMINATION BRACKET SETUP ---
-  const startBracket = () => {
-    // Logic quay số Jackpot 2 người cùng lúc để tìm cặp đấu
-    const activeOnes = shuffle(tournament.players.filter(p => p.status === 'active'));
-    let matches = [];
-    for(let i=0; i < activeOnes.length; i+=2) {
-      matches.push({
-        id: `B1-${i}`,
-        players: [activeOnes[i], activeOnes[i+1]].map(p => ({...p, lane: null, matchScore: 0})),
-        round: 1,
-        type: 'winner'
-      });
-    }
-    setTournament(t => ({ ...t, phase: 'bracket', matches }));
-  };
-
-  // --- VIEW COMPONENTS ---
+  // --- Render Login ---
   if (!user) return (
-    <div className="login-container">
-      <div className="card" style={{ width: '400px' }}>
-        <h2 style={{ fontFamily: 'Orbitron', color: var(--gold), marginBottom: '20px', textAlign: 'center' }}>M4WD LOGIN</h2>
-        <div style={{ marginBottom: '20px' }}>
-          <p className="tab">ADMIN ACCESS</p>
-          <input className="input" type="password" placeholder="Mật mã Admin" onChange={e => setPassInput(e.target.value)} />
-          <button className="btn btn-gold w-full" onClick={loginAdmin}>ĐĂNG NHẬP ADMIN</button>
-        </div>
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
-          <p className="tab">GUEST ACCESS</p>
-          <input className="input" placeholder="Tên của bạn" onChange={e => setGuestName(e.target.value)} />
-          <button className="btn btn-outline w-full" onClick={loginGuest}>VÀO XEM GIẢI</button>
-        </div>
+    <div className="login-container" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="card" style={{ width: '350px' }}>
+        <h2 style={{ fontFamily: 'Orbitron', color: 'var(--gold)', textAlign: 'center', marginBottom: '25px' }}>SGMS M4WD</h2>
+        <input className="input" type="password" placeholder="Admin Pass" onChange={e => setPassInput(e.target.value)} />
+        <button className="btn btn-gold" onClick={loginAdmin} style={{ width: '100%' }}>ADMIN LOGIN</button>
+        <div style={{ margin: '20px 0', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem' }}>--- OR ---</div>
+        <input className="input" placeholder="Tên của bạn" onChange={e => setGuestName(e.target.value)} />
+        <button className="btn btn-outline" onClick={loginGuest} style={{ width: '100%' }}>GUEST VIEW</button>
       </div>
     </div>
   );
@@ -239,150 +191,122 @@ function App() {
   return (
     <div>
       <header className="header">
-        <div className="logo">SGMS MINI 4WD</div>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          {tournament && <span style={{ color: var(--gold) }}>CODE: {tournament.code}</span>}
-          <span className="lane-badge">{user.role.toUpperCase()}: {user.name}</span>
-          <button className="btn btn-outline" onClick={() => setUser(null)} style={{ padding: '5px 10px' }}>THOÁT</button>
+        <div className="logo">SGMS TOURNAMENT</div>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <span className="lane-badge" style={{ background: 'var(--gold)', color: 'black' }}>{user.name}</span>
+          <button onClick={() => { localStorage.removeItem('m4wd_data'); location.reload(); }} className="btn btn-outline" style={{ padding: '5px 10px' }}>RESET</button>
         </div>
       </header>
 
-      <main style={{ padding: '30px' }}>
+      <div className="app-container">
         {!tournament ? (
-          <div className="card" style={{ maxWidth: '500px', margin: 'auto', textAlign: 'center' }}>
-            <h3 className="tab">TẠO GIẢI ĐẤU MỚI</h3>
-            <input id="tName" className="input" placeholder="Tên giải đấu (VD: SGMS CUP 2024)" />
-            <button className="btn btn-gold" onClick={() => createTournament(document.getElementById('tName').value)}>KHỞI TẠO</button>
+          <div className="card" style={{ maxWidth: '400px', margin: 'auto' }}>
+            <h3 style={{ fontFamily: 'Orbitron', marginBottom: '15px' }}>TẠO GIẢI MỚI</h3>
+            <input className="input" id="tn" placeholder="Tên giải đấu" />
+            <button className="btn btn-gold" style={{ width: '100%' }} onClick={() => initTournament(document.getElementById('tn').value)}>KHỞI TẠO</button>
           </div>
         ) : (
           <>
             <div className="tabs">
               <div className={`tab ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>THÔNG TIN</div>
               <div className={`tab ${activeTab === 'play' ? 'active' : ''}`} onClick={() => setActiveTab('play')}>THI ĐẤU</div>
-              <div className={`tab ${activeTab === 'lb' ? 'active' : ''}`} onClick={() => setActiveTab('lb')}>BẢNG ĐIỂM</div>
+              <div className={`tab ${activeTab === 'rank' ? 'active' : ''}`} onClick={() => setActiveTab('rank')}>XẾP HẠNG</div>
             </div>
 
-            {/* TAB: THÔNG TIN / ĐĂNG KÝ */}
             {activeTab === 'info' && (
               <div className="card">
-                <h3>{tournament.name}</h3>
-                <p style={{ color: 'var(--text-dim)', marginBottom: '20px' }}>Trạng thái: {tournament.phase.toUpperCase()}</p>
+                <h2>{tournament.name}</h2>
+                <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginBottom: '20px' }}>Giai đoạn: {tournament.phase.toUpperCase()}</p>
                 
                 {tournament.phase === 'registration' && (
                   <div>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                      <input id="pName" className="input" placeholder="Tên racer" style={{ margin: 0 }} />
-                      <button className="btn btn-gold" onClick={() => {
-                        addPlayer(document.getElementById('pName').value);
-                        document.getElementById('pName').value = '';
-                      }}>ĐĂNG KÝ</button>
+                      <input className="input" id="pn" placeholder="Tên Racer" style={{ marginBottom: 0 }} />
+                      <button className="btn btn-gold" onClick={() => addPlayer(document.getElementById('pn').value)}>ĐĂNG KÝ</button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                    <div className="match-grid">
                       {tournament.players.map(p => (
-                        <div key={p.id} className="player-slot" style={{ background: 'var(--bg3)', borderRadius: '4px' }}>
-                          {p.name}
-                          {user.role === 'admin' && <button onClick={() => setTournament(t => ({ ...t, players: t.players.filter(pl => pl.id !== p.id) }))} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer' }}>✕</button>}
+                        <div key={p.id} className="player-row" style={{ background: 'var(--bg3)', borderRadius: '6px' }}>
+                          <span>{p.name}</span>
+                          {user.role === 'admin' && <button style={{ color: 'red', border: 'none', background: 'none' }} onClick={() => setTournament(t => ({ ...t, players: t.players.filter(x => x.id !== p.id) }))}>XÓA</button>}
                         </div>
                       ))}
                     </div>
-                    {user.role === 'admin' && tournament.players.length >= 8 && (
-                      <button className="btn btn-gold" style={{ marginTop: '30px', width: '100%' }} onClick={() => setTournament(t => ({ ...t, phase: 'jackpot' }))}>KHÓA DANH SÁCH & QUAY ID</button>
+                    {user.role === 'admin' && tournament.players.length >= 2 && (
+                      <button className="btn btn-gold" style={{ width: '100%', marginTop: '20px' }} onClick={() => setTournament(t => ({ ...t, phase: 'jackpot' }))}>KHÓA DANH SÁCH & QUAY ID</button>
                     )}
                   </div>
                 )}
 
-                {/* PHASE: JACKPOT */}
                 {tournament.phase === 'jackpot' && (
-                  <div style={{ textAlign: 'center' }}>
-                    <h2 className="tab">QUAY SỐ JACKPOT ID</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
-                      {tournament.players.map(p => (
-                        <div key={p.id} className="card">
-                          <p>{p.name}</p>
-                          <div className="jackpot-num">{p.jackpotId || '??'}</div>
-                          {!p.jackpotId && (user.role === 'admin' || user.name === p.name) && (
-                            <button className="btn btn-gold btn-sm" onClick={() => {
-                              const id = Math.floor(Math.random() * 90 + 10);
-                              setTournament(t => ({
-                                ...t,
-                                players: t.players.map(pl => pl.id === p.id ? { ...pl, jackpotId: id } : pl)
-                              }));
-                            }}>QUAY</button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="match-grid">
+                    {tournament.players.map(p => (
+                      <div key={p.id} className="card" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{p.name}</div>
+                        <div style={{ fontFamily: 'Orbitron', fontSize: '2rem', color: 'var(--gold)', margin: '10px 0' }}>{p.jackpotId || '??'}</div>
+                        {!p.jackpotId && (user.role === 'admin' || user.name === p.name) && (
+                          <button className="btn btn-gold" onClick={() => {
+                            const num = Math.floor(Math.random() * 90 + 10);
+                            setTournament(t => ({ ...t, players: t.players.map(x => x.id === p.id ? { ...x, jackpotId: num } : x) }));
+                          }}>QUAY ID</button>
+                        )}
+                      </div>
+                    ))}
                     {user.role === 'admin' && tournament.players.every(p => p.jackpotId) && (
-                      <button className="btn btn-gold" style={{ marginTop: '30px' }} onClick={startQualifiers}>BẮT ĐẦU VÒNG LOẠI</button>
+                      <button className="btn btn-gold" style={{ gridColumn: '1/-1' }} onClick={startQualifiers}>BẮT ĐẦU VÒNG LOẠI</button>
                     )}
                   </div>
                 )}
               </div>
             )}
 
-            {/* TAB: THI ĐẤU (QUALIFIER & BRACKET) */}
             {activeTab === 'play' && (
-              <div className="bracket-wrapper">
-                {tournament.matches.map((m, mIdx) => (
-                  <div key={m.id} className={`match-box ${!m.isComplete ? 'active' : ''}`}>
-                    <div style={{ padding: '5px', fontSize: '0.7rem', color: var(--gold), textAlign: 'center', borderBottom: '1px solid var(--border)' }}>MATCH {mIdx + 1}</div>
+              <div className="match-grid">
+                {tournament.matches.map((m, idx) => (
+                  <div key={m.id} className={`match-box ${!m.isDone ? 'active' : ''}`}>
+                    <div className="match-header">
+                       <span>VÁN {idx + 1}</span>
+                       <span>{m.isDone ? 'HOÀN TẤT' : 'ĐANG ĐUA'}</span>
+                    </div>
                     {m.players.map(p => (
-                      <div key={p.id} className={`player-slot ${m.isComplete && p.matchScore === Math.max(...m.players.map(pl=>pl.matchScore)) ? 'winner' : ''}`}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span className="lane-badge">{p.lane || '?'}</span>
+                      <div key={p.id} className="player-row">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span className={`lane-badge lane-${p.lane}`}>{p.lane || '?'}</span>
                           <span>{p.name}</span>
                         </div>
-                        
-                        {/* Control logic */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <div style={{ display: 'flex', gap: '10px' }}>
                           {!p.lane && (user.role === 'admin' || user.name === p.name) && (
-                            <div className="dice" onClick={() => rollDice(m.id, p.id)}>🎲</div>
+                            <div className="dice-btn" onClick={() => rollLane(m.id, p.id)}>🎲</div>
                           )}
-                          {user.role === 'admin' && !m.isComplete ? (
-                            <select onChange={(e) => updateScore(m.id, p.id, e.target.value)} style={{ background: '#000', color: '#fff', border: '1px solid var(--gold)' }}>
-                              <option value="0">0</option>
-                              <option value="1">1</option>
-                              <option value="2">2</option>
-                              <option value="3">3</option>
-                            </select>
-                          ) : (
-                            <span style={{ fontWeight: 'bold' }}>{p.matchScore}</span>
-                          )}
+                          {user.role === 'admin' && !m.isDone ? (
+                            <input className="score-input" type="number" onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              setTournament(t => ({
+                                ...t,
+                                matches: t.matches.map(mx => mx.id === m.id ? {
+                                  ...mx,
+                                  players: mx.players.map(px => px.id === p.id ? { ...px, matchScore: val } : px)
+                                } : mx)
+                              }));
+                            }} />
+                          ) : <span style={{ fontWeight: 'bold' }}>{p.matchScore}</span>}
                         </div>
                       </div>
                     ))}
-                    {user.role === 'admin' && !m.isComplete && m.players.every(p => p.lane !== null) && (
-                      <button className="btn btn-gold" style={{ width: '100%', fontSize: '0.7rem' }} onClick={() => completeMatch(m.id)}>XÁC NHẬN VÁN</button>
+                    {user.role === 'admin' && !m.isDone && (
+                      <button className="btn btn-gold" style={{ width: '100%', borderRadius: 0 }} onClick={() => submitMatch(m.id)}>CHỐT ĐIỂM</button>
                     )}
                   </div>
                 ))}
-                
-                {user.role === 'admin' && tournament.phase === 'qualifier' && tournament.matches.every(m => m.isComplete) && (
-                  <button className="btn btn-gold" onClick={finalizeQualifiers}>TỔNG KẾT VÒNG LOẠI</button>
-                )}
-
-                {/* BRACKET SEEDING PHASE */}
-                {tournament.phase === 'bracket_seeding' && (
-                  <div style={{ textAlign: 'center', width: '100%' }}>
-                    <h2 className="tab">KẾT QUẢ VÒNG LOẠI - TOP {getBracketTarget(tournament.players.length)}</h2>
-                    <div className="card" style={{ maxWidth: '400px', margin: 'auto' }}>
-                      {tournament.players.filter(p => p.status === 'active').map(p => (
-                        <div key={p.id} className="player-slot winner">#{p.jackpotId} {p.name} - {p.score}đ</div>
-                      ))}
-                    </div>
-                    {user.role === 'admin' && (
-                      <button className="btn btn-gold" style={{ marginTop: '20px' }} onClick={startBracket}>QUAY JACKPOT CẶP ĐẤU & BẮT ĐẦU</button>
-                    )}
-                  </div>
+                {user.role === 'admin' && tournament.phase === 'qualifier' && tournament.matches.every(m => m.isDone) && (
+                  <button className="btn btn-gold" style={{ gridColumn: '1/-1' }} onClick={finalizeQualifiers}>KẾT THÚC VÒNG LOẠI</button>
                 )}
               </div>
             )}
 
-            {/* TAB: LEADERBOARD */}
-            {activeTab === 'lb' && (
-              <div className="card" style={{ maxWidth: '600px', margin: 'auto' }}>
-                <h3 className="tab" style={{ textAlign: 'center' }}>BẢNG XẾP HẠNG TỔNG</h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+            {activeTab === 'rank' && (
+              <div className="card">
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ color: 'var(--gold)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                       <th style={{ padding: '10px' }}>ID</th>
@@ -392,12 +316,12 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {tournament.players.sort((a,b) => b.score - a.score).map(p => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid var(--border)', opacity: p.status === 'out' ? 0.5 : 1 }}>
-                        <td style={{ padding: '12px' }}>{p.jackpotId}</td>
+                    {tournament.players.sort((a,b) => b.totalScore - a.totalScore).map(p => (
+                      <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: p.status === 'out' ? 0.4 : 1 }}>
+                        <td style={{ padding: '10px', fontFamily: 'Orbitron' }}>{p.jackpotId}</td>
                         <td style={{ fontWeight: 'bold' }}>{p.name}</td>
-                        <td style={{ color: 'var(--gold)' }}>{p.score}</td>
-                        <td>{p.status === 'out' ? <span className="out-badge">OUT</span> : <span style={{ color: 'var(--green)' }}>ACTIVE</span>}</td>
+                        <td style={{ color: 'var(--gold)', fontWeight: 'bold' }}>{p.totalScore}</td>
+                        <td>{p.status === 'out' ? <span className="out-stamp">OUT</span> : <span style={{ color: 'var(--green)', fontSize: '0.7rem' }}>ACTIVE</span>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -406,7 +330,7 @@ function App() {
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
