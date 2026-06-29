@@ -3,761 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🏆 Mini 4WD Tournament Manager</title>
+  <title>UnELAB Mini 4WD Tournament</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-
-    :root {
-      --gold: #f5c518;
-      --gold-dim: #c9a000;
-      --red: #e63946;
-      --red-dim: #a02630;
-      --bg: #0a0a0f;
-      --bg2: #111118;
-      --bg3: #1a1a24;
-      --bg4: #22222f;
-      --border: #2a2a3a;
-      --text: #e8e8f0;
-      --text-dim: #7878a0;
-      --green: #2ecc71;
-      --cyan: #00d4ff;
-      --purple: #9b59b6;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 16px;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Scrollbar */
+    body { background: #0a0a0f; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg2); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
-
-    /* ANIMATIONS */
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 10px var(--gold), 0 0 20px var(--gold)40; }
-      50% { box-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold)80; }
-    }
-    @keyframes spin-reel {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-900%); }
-    }
-    @keyframes stamp-in {
-      0% { transform: scale(3) rotate(-15deg); opacity: 0; }
-      60% { transform: scale(0.9) rotate(2deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    @keyframes slide-in-right {
-      from { transform: translateX(60px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slide-in-up {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      20% { transform: translateX(-8px); }
-      40% { transform: translateX(8px); }
-      60% { transform: translateX(-6px); }
-      80% { transform: translateX(6px); }
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
-    }
-    @keyframes dice-roll {
-      0% { transform: rotate(0deg) scale(1); }
-      25% { transform: rotate(180deg) scale(1.3); }
-      50% { transform: rotate(360deg) scale(0.8); }
-      75% { transform: rotate(540deg) scale(1.2); }
-      100% { transform: rotate(720deg) scale(1); }
-    }
-    @keyframes scan-line {
-      0% { top: -4px; }
-      100% { top: 100%; }
-    }
-    @keyframes bg-grid {
-      0% { background-position: 0 0; }
-      100% { background-position: 40px 40px; }
-    }
-    @keyframes winner-flash {
-      0%,100% { background: var(--gold)20; border-color: var(--gold); }
-      50% { background: var(--gold)50; border-color: var(--gold); box-shadow: 0 0 30px var(--gold); }
-    }
-    @keyframes number-pop {
-      0% { transform: scale(0); opacity: 0; }
-      70% { transform: scale(1.2); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes jackpot-glow {
-      0%,100% { text-shadow: 0 0 10px var(--gold), 0 0 20px var(--gold); }
-      50% { text-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold), 0 0 60px var(--gold); }
-    }
-
-    /* LAYOUT */
-    .app-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 12px;
-    }
-
-    /* HEADER */
-    .app-header {
-      background: linear-gradient(135deg, var(--bg2), var(--bg3));
-      border-bottom: 2px solid var(--gold)40;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-logo {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: var(--gold);
-      text-shadow: 0 0 20px var(--gold)80;
-      letter-spacing: 2px;
-    }
-    .header-badge {
-      background: var(--bg4);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 12px;
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      font-family: 'Share Tech Mono', monospace;
-    }
-    .header-badge.admin { border-color: var(--gold); color: var(--gold); }
-    .header-badge.guest { border-color: var(--cyan); color: var(--cyan); }
-
-    /* CARDS */
-    .card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .card-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 2px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* BUTTONS */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 1px;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
-      color: #000;
-    }
-    .btn-gold:hover:not(:disabled) {
-      box-shadow: 0 0 20px var(--gold)80;
-      transform: translateY(-1px);
-    }
-    .btn-red {
-      background: linear-gradient(135deg, var(--red), var(--red-dim));
-      color: #fff;
-    }
-    .btn-red:hover:not(:disabled) { box-shadow: 0 0 15px var(--red)60; transform: translateY(-1px); }
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-    .btn-outline:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
-    .btn-cyan {
-      background: linear-gradient(135deg, var(--cyan)30, var(--cyan)10);
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-    }
-    .btn-cyan:hover:not(:disabled) { box-shadow: 0 0 15px var(--cyan)40; }
-    .btn-green {
-      background: linear-gradient(135deg, var(--green)30, var(--green)10);
-      border: 1px solid var(--green);
-      color: var(--green);
-    }
-    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
-    .btn-lg { padding: 14px 32px; font-size: 1.1rem; }
-    .btn-xl { padding: 20px 48px; font-size: 1.3rem; }
-
-    /* INPUTS */
-    .input {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 1rem;
-      width: 100%;
-      transition: border-color 0.2s;
-    }
-    .input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold)20; }
-    .input::placeholder { color: var(--text-dim); }
-
-    /* BADGES */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      font-family: 'Share Tech Mono', monospace;
-      letter-spacing: 1px;
-    }
-    .badge-gold { background: var(--gold)20; border: 1px solid var(--gold); color: var(--gold); }
-    .badge-red { background: var(--red)20; border: 1px solid var(--red); color: var(--red); }
-    .badge-green { background: var(--green)20; border: 1px solid var(--green); color: var(--green); }
-    .badge-cyan { background: var(--cyan)20; border: 1px solid var(--cyan); color: var(--cyan); }
-    .badge-dim { background: var(--bg4); border: 1px solid var(--border); color: var(--text-dim); }
-
-    /* LOGIN SCREEN */
-    .login-screen {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background:
-        radial-gradient(ellipse 80% 60% at 50% -10%, var(--gold)08 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, var(--red)06 0%, transparent 50%),
-        var(--bg);
-      position: relative;
-      overflow: hidden;
-    }
-    .login-screen::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.3;
-      animation: bg-grid 8s linear infinite;
-    }
-    .login-logo {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1.8rem, 5vw, 3rem);
-      font-weight: 900;
-      color: var(--gold);
-      text-align: center;
-      line-height: 1.2;
-      animation: jackpot-glow 3s ease-in-out infinite;
-      margin-bottom: 8px;
-      position: relative;
-    }
-    .login-subtitle {
-      color: var(--text-dim);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.85rem;
-      text-align: center;
-      letter-spacing: 3px;
-      margin-bottom: 48px;
-      position: relative;
-    }
-    .login-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 420px;
-      position: relative;
-      animation: slide-in-up 0.4s ease;
-    }
-
-    /* JACKPOT REEL */
-    .jackpot-container {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      align-items: center;
-    }
-    .jackpot-reel-wrapper {
-      width: 72px;
-      height: 80px;
-      background: var(--bg);
-      border: 2px solid var(--gold);
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: inset 0 0 20px var(--gold)20, 0 0 15px var(--gold)30;
-    }
-    .jackpot-reel-wrapper::before, .jackpot-reel-wrapper::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0;
-      height: 24px;
-      z-index: 2;
-      pointer-events: none;
-    }
-    .jackpot-reel-wrapper::before {
-      top: 0;
-      background: linear-gradient(to bottom, var(--bg2) 0%, transparent 100%);
-    }
-    .jackpot-reel-wrapper::after {
-      bottom: 0;
-      background: linear-gradient(to top, var(--bg2) 0%, transparent 100%);
-    }
-    .jackpot-reel-track {
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.05s;
-    }
-    .jackpot-reel-track.spinning {
-      animation: spin-reel 0.1s linear infinite;
-    }
-    .jackpot-digit {
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Orbitron', monospace;
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--gold);
-      text-shadow: 0 0 15px var(--gold)80;
-      flex-shrink: 0;
-    }
-    .jackpot-result {
-      font-family: 'Orbitron', monospace;
-      font-size: 2rem;
-      font-weight: 900;
-      color: var(--gold);
-      text-shadow: 0 0 20px var(--gold);
-      animation: number-pop 0.4s ease;
-    }
-
-    /* DICE */
-    .dice-face {
-      width: 72px;
-      height: 72px;
-      background: var(--bg3);
-      border: 2px solid var(--gold);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Orbitron', monospace;
-      font-size: 1.8rem;
-      font-weight: 900;
-      color: var(--gold);
-      box-shadow: 0 0 15px var(--gold)30;
-      position: relative;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .dice-face.rolling {
-      animation: dice-roll 0.8s ease;
-    }
-    .dice-face:hover:not(.locked):not(.rolling) {
-      box-shadow: 0 0 25px var(--gold)60;
-      transform: scale(1.05);
-    }
-    .dice-face.locked {
-      border-color: var(--green);
-      color: var(--green);
-      box-shadow: 0 0 15px var(--green)30;
-      cursor: default;
-    }
-
-    /* PLAYER ROW */
-    .player-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      animation: slide-in-right 0.3s ease;
-    }
-    .player-row:hover { border-color: var(--gold)40; }
-    .player-row.out { opacity: 0.5; filter: grayscale(0.7); }
-
-    /* BRACKET */
-    .bracket-container {
-      overflow-x: auto;
-      padding-bottom: 20px;
-    }
-    .bracket-section-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 3px;
-      margin: 20px 0 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .bracket-round-col {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      min-width: 180px;
-    }
-    .bracket-round-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      text-align: center;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
-    .match-box {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 4px 0;
-      transition: all 0.3s;
-      position: relative;
-    }
-    .match-box.active {
-      border-color: var(--gold);
-      box-shadow: 0 0 15px var(--gold)30;
-      animation: glow-pulse 2s ease-in-out infinite;
-    }
-    .match-box.completed { border-color: var(--border); }
-    .match-player {
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.2s;
-    }
-    .match-player:last-child { border-bottom: none; }
-    .match-player.winner { background: var(--gold)15; color: var(--gold); font-weight: 700; }
-    .match-player.loser { background: transparent; color: var(--text-dim); }
-    .match-player.bye { background: var(--cyan)10; color: var(--cyan); }
-    .match-number-badge {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--gold);
-      background: var(--gold)15;
-      padding: 1px 5px;
-      border-radius: 3px;
-      flex-shrink: 0;
-    }
-    .match-score {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-left: auto;
-      min-width: 20px;
-      text-align: right;
-    }
-
-    /* SCORE BUTTONS */
-    .score-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      background: var(--bg4);
-      color: var(--text);
-      font-family: 'Orbitron', monospace;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .score-btn:hover { border-color: var(--gold); color: var(--gold); }
-    .score-btn.selected { border-color: var(--gold); background: var(--gold)20; color: var(--gold); box-shadow: 0 0 10px var(--gold)40; }
-
-    /* TABS */
-    .tab-bar {
-      display: flex;
-      gap: 4px;
-      background: var(--bg2);
-      padding: 4px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .tab {
-      flex: 1;
-      min-width: 80px;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 7px;
-      background: transparent;
-      color: var(--text-dim);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 1px;
-      white-space: nowrap;
-    }
-    .tab.active { background: var(--bg4); color: var(--gold); }
-    .tab:hover:not(.active) { color: var(--text); }
-
-    /* PROGRESS BAR */
-    .progress-bar {
-      background: var(--bg3);
-      border-radius: 20px;
-      height: 6px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold), var(--red));
-      border-radius: 20px;
-      transition: width 0.5s ease;
-    }
-
-    /* OUT stamp */
-    .out-stamp {
-      display: inline-block;
-      font-family: 'Orbitron', monospace;
-      font-size: 0.75rem;
-      font-weight: 900;
-      color: var(--red);
-      border: 2px solid var(--red);
-      border-radius: 4px;
-      padding: 1px 6px;
-      letter-spacing: 2px;
-      animation: stamp-in 0.3s ease;
-    }
-
-    /* LEADERBOARD */
-    .lb-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      margin-bottom: 4px;
-      font-size: 0.9rem;
-      transition: all 0.3s;
-    }
-    .lb-row.qualify { background: var(--gold)10; border: 1px solid var(--gold)30; }
-    .lb-row.eliminate { background: var(--red)05; border: 1px solid var(--border); opacity: 0.6; }
-    .lb-rank {
-      font-family: 'Orbitron', monospace;
-      font-size: 1rem;
-      font-weight: 900;
-      color: var(--gold);
-      min-width: 32px;
-    }
-    .lb-score {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.1rem;
-      font-weight: 900;
-      margin-left: auto;
-    }
-
-    /* TOAST */
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .toast {
-      background: var(--bg3);
-      border: 1px solid var(--gold);
-      border-radius: 8px;
-      padding: 12px 18px;
-      font-size: 0.85rem;
-      animation: slide-in-right 0.3s ease;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      max-width: 300px;
-    }
-    .toast.error { border-color: var(--red); }
-    .toast.success { border-color: var(--green); }
-
-    /* PHASE INDICATOR */
-    .phase-steps {
-      display: flex;
-      gap: 0;
-      margin-bottom: 24px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-    .phase-step {
-      flex: 1;
-      min-width: 80px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      position: relative;
-    }
-    .phase-step::after {
-      content: '';
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      right: -50%;
-      height: 2px;
-      background: var(--border);
-    }
-    .phase-step:last-child::after { display: none; }
-    .phase-step.done::after { background: var(--gold); }
-    .phase-dot {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--bg3);
-      border: 2px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      position: relative;
-      z-index: 1;
-    }
-    .phase-step.done .phase-dot { background: var(--gold); border-color: var(--gold); color: #000; }
-    .phase-step.active .phase-dot { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px var(--gold)60; }
-    .phase-label {
-      font-size: 0.65rem;
-      font-family: 'Share Tech Mono', monospace;
-      color: var(--text-dim);
-      text-align: center;
-      letter-spacing: 1px;
-    }
-    .phase-step.active .phase-label, .phase-step.done .phase-label { color: var(--gold); }
-
-    /* CONNECTOR LINES for bracket */
-    .bracket-grid {
-      display: flex;
-      gap: 0;
-      align-items: stretch;
-    }
-    .connector-col {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      width: 24px;
-      flex-shrink: 0;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 640px) {
-      .login-card { padding: 20px; }
-      .btn-xl { padding: 14px 28px; font-size: 1.1rem; }
-      .app-header { padding: 8px 12px; }
-    }
-
-    /* Utility */
-    .mono { font-family: 'Share Tech Mono', monospace; }
-    .orbitron { font-family: 'Orbitron', monospace; }
-    .text-gold { color: var(--gold); }
-    .text-red { color: var(--red); }
-    .text-green { color: var(--green); }
-    .text-cyan { color: var(--cyan); }
-    .text-dim { color: var(--text-dim); }
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 8px; }
-    .gap-3 { gap: 12px; }
-    .gap-4 { gap: 16px; }
-    .mb-2 { margin-bottom: 8px; }
-    .mb-3 { margin-bottom: 12px; }
-    .mb-4 { margin-bottom: 16px; }
-    .mb-6 { margin-bottom: 24px; }
-    .mt-2 { margin-top: 8px; }
-    .mt-3 { margin-top: 12px; }
-    .mt-4 { margin-top: 16px; }
-    .p-2 { padding: 8px; }
-    .p-3 { padding: 12px; }
-    .w-full { width: 100%; }
-    .text-center { text-align: center; }
-    .text-sm { font-size: 0.85rem; }
-    .text-xs { font-size: 0.75rem; }
-    .font-bold { font-weight: 700; }
-    .relative { position: relative; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    .section-header {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 2px;
-      margin-bottom: 12px;
-    }
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 20px 0;
-    }
-    .lane-badge {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: 700;
-    }
-    .lane-1 { background: var(--red)20; border: 1px solid var(--red); color: var(--red); }
-    .lane-2 { background: var(--gold)20; border: 1px solid var(--gold); color: var(--gold); }
-    .lane-3 { background: var(--cyan)20; border: 1px solid var(--cyan); color: var(--cyan); }
-    .winner-crown { color: var(--gold); font-size: 1.2rem; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #f5c518; border-radius: 3px; }
   </style>
 </head>
 <body>
   <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useReducer, useEffect, useRef, useCallback } = React;
 
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+
 
 // ============================================================
-// UTILITIES
+// CONSTANTS & HELPERS
 // ============================================================
-function shuffle(arr) {
+const ADMIN_PASS = "Phuong090";
+const PHASES = { LANDING: "LANDING", LOBBY: "LOBBY", JACKPOT: "JACKPOT", QUALIFIER: "QUALIFIER", SEEDING: "SEEDING", BRACKET: "BRACKET", CHAMPION: "CHAMPION" };
+
+function genRoomCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -766,510 +42,341 @@ function shuffle(arr) {
   return a;
 }
 
-function nextPowerOf2(n) {
-  let p = 1;
-  while (p < n) p *= 2;
-  return p;
+function groupPlayers(players) {
+  const n = players.length;
+  const groups = [];
+  let rem = n;
+  let idx = 0;
+  while (rem > 0) {
+    if (rem % 2 === 0 || rem >= 3) {
+      if (rem % 3 === 0) {
+        groups.push(players.slice(idx, idx + 3));
+        idx += 3; rem -= 3;
+      } else if (rem % 2 === 0) {
+        groups.push(players.slice(idx, idx + 2));
+        idx += 2; rem -= 2;
+      } else {
+        groups.push(players.slice(idx, idx + 3));
+        idx += 3; rem -= 3;
+      }
+    } else {
+      groups.push(players.slice(idx, idx + 2));
+      idx += 2; rem -= 2;
+    }
+  }
+  return groups;
 }
 
-function getBracketTarget(count) {
-  if (count <= 8) return 8;
-  if (count <= 16) return 16;
-  if (count <= 32) return 32;
-  return 64;
+function getBracketSize(count) {
+  if ([8, 16, 32].includes(count)) return { direct: true, size: count };
+  if (count >= 9 && count <= 15) return { direct: false, size: 8 };
+  if (count >= 17 && count <= 31) return { direct: false, size: 16 };
+  if (count >= 33 && count <= 63) return { direct: false, size: 32 };
+  return null;
 }
 
-function needsQualifier(count) {
-  return count !== 8 && count !== 16 && count !== 32;
+// Double Elimination bracket builder
+function buildDEBracket(seeds) {
+  const size = seeds.length;
+  // Winners bracket rounds
+  const wbRounds = [];
+  let wbMatches = [];
+  for (let i = 0; i < size; i += 2) {
+    wbMatches.push({ id: `WB-R1-M${i / 2}`, p1: seeds[i], p2: seeds[i + 1], score1: null, score2: null, winner: null, loser: null, round: 1, bracket: "WB", lane1: null, lane2: null, lane3: null, status: "PENDING" });
+  }
+  wbRounds.push(wbMatches);
+  let prevRound = wbMatches;
+  let round = 2;
+  while (prevRound.length > 1) {
+    const nextRound = [];
+    for (let i = 0; i < prevRound.length; i += 2) {
+      nextRound.push({ id: `WB-R${round}-M${i / 2}`, p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, round, bracket: "WB", lane1: null, lane2: null, lane3: null, status: "WAITING" });
+    }
+    wbRounds.push(nextRound);
+    prevRound = nextRound;
+    round++;
+  }
+
+  // Losers bracket
+  const lbRounds = [];
+  const wbRoundCount = wbRounds.length;
+  let lbSize = size / 2;
+  let lbRound = 1;
+  // LB round 1: gets losers from WB R1
+  let lbMatches = [];
+  for (let i = 0; i < lbSize; i += 2) {
+    lbMatches.push({ id: `LB-R${lbRound}-M${i / 2}`, p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, round: lbRound, bracket: "LB", lane1: null, lane2: null, lane3: null, status: "WAITING" });
+  }
+  lbRounds.push(lbMatches);
+  lbRound++;
+  lbSize = lbSize / 2;
+
+  while (lbSize >= 1) {
+    lbMatches = [];
+    for (let i = 0; i < lbSize; i++) {
+      lbMatches.push({ id: `LB-R${lbRound}-M${i}`, p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, round: lbRound, bracket: "LB", lane1: null, lane2: null, lane3: null, status: "WAITING" });
+    }
+    lbRounds.push(lbMatches);
+    lbRound++;
+    if (lbSize === 1) break;
+    lbSize = Math.ceil(lbSize / 2);
+  }
+
+  const grandFinal = { id: "GF-1", p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, bracket: "GF", lane1: null, lane2: null, lane3: null, status: "WAITING", isReset: false };
+  const grandFinalReset = { id: "GF-2", p1: null, p2: null, score1: null, score2: null, winner: null, loser: null, bracket: "GF", lane1: null, lane2: null, lane3: null, status: "WAITING", isReset: true };
+
+  return { wbRounds, lbRounds, grandFinal, grandFinalReset, champion: null };
 }
 
 // ============================================================
-// TOAST SYSTEM
+// REDUCER
 // ============================================================
-function ToastContainer({ toasts }) {
-  return (
-    <div className="toast-container">
-      {toasts.map(t => (
-        <div key={t.id} className={`toast ${t.type}`}>
-          {t.msg}
-        </div>
-      ))}
-    </div>
-  );
+const initialState = {
+  phase: PHASES.LANDING,
+  role: null,
+  roomCode: null,
+  players: [],
+  listLocked: false,
+  qualifierRounds: 3,
+  qualifierMatches: [],
+  currentQualRound: 0,
+  bracketSize: null,
+  advancedPlayers: [],
+  seedingPairs: [],
+  seedingDone: false,
+  bracket: null,
+  champion: null,
+  activeMatchId: null,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "SET_PHASE": return { ...state, phase: action.payload };
+    case "SET_ROLE": return { ...state, role: action.payload };
+    case "SET_ROOM_CODE": return { ...state, roomCode: action.payload };
+    case "ADD_PLAYER": {
+      const newP = { id: Date.now() + Math.random(), name: action.payload, jackpotNum: null, score: 0, totalScore: 0, status: "ACTIVE", matchHistory: [] };
+      return { ...state, players: [...state.players, newP] };
+    }
+    case "UPDATE_PLAYER_NAME": return { ...state, players: state.players.map(p => p.id === action.id ? { ...p, name: action.name } : p) };
+    case "REMOVE_PLAYER": return { ...state, players: state.players.filter(p => p.id !== action.id) };
+    case "LOCK_LIST": return { ...state, listLocked: true };
+    case "ASSIGN_JACKPOT": return { ...state, players: state.players.map(p => p.id === action.id ? { ...p, jackpotNum: action.num } : p) };
+    case "SET_QUALIFIER_ROUNDS": return { ...state, qualifierRounds: action.payload };
+    case "INIT_QUALIFIER_ROUND": {
+      const shuffled = shuffleArray(state.players.filter(p => p.status === "ACTIVE"));
+      const groups = groupPlayers(shuffled);
+      const roundNum = state.currentQualRound + 1;
+      const newMatches = groups.map((grp, i) => ({
+        id: `Q-R${roundNum}-M${i}`,
+        players: grp.map(p => ({ id: p.id, lane: null, score: null, diceRolled: false })),
+        round: roundNum,
+        status: "DICE",
+        size: grp.length
+      }));
+      return { ...state, qualifierMatches: [...state.qualifierMatches, ...newMatches], currentQualRound: roundNum };
+    }
+    case "SET_QUAL_DICE": {
+      return {
+        ...state,
+        qualifierMatches: state.qualifierMatches.map(m => {
+          if (m.id !== action.matchId) return m;
+          return { ...m, players: m.players.map(p => p.id === action.playerId ? { ...p, lane: action.lane, diceRolled: true } : p) };
+        })
+      };
+    }
+    case "SET_QUAL_MATCH_STATUS": {
+      return { ...state, qualifierMatches: state.qualifierMatches.map(m => m.id === action.matchId ? { ...m, status: action.status } : m) };
+    }
+    case "SET_QUAL_SCORE": {
+      return {
+        ...state,
+        qualifierMatches: state.qualifierMatches.map(m => {
+          if (m.id !== action.matchId) return m;
+          return { ...m, players: m.players.map(p => p.id === action.playerId ? { ...p, score: action.score } : p) };
+        })
+      };
+    }
+    case "FINISH_QUALIFIER_ROUND": {
+      // Tally scores
+      const scoreUpdates = {};
+      state.qualifierMatches.filter(m => m.round === state.currentQualRound).forEach(m => {
+        m.players.forEach(p => { scoreUpdates[p.id] = (scoreUpdates[p.id] || 0) + (p.score || 0); });
+      });
+      const updatedPlayers = state.players.map(p => ({ ...p, totalScore: (p.totalScore || 0) + (scoreUpdates[p.id] || 0) }));
+      return { ...state, players: updatedPlayers };
+    }
+    case "RESOLVE_QUALIFIERS": {
+      const bs = getBracketSize(state.players.length);
+      const sorted = [...state.players].sort((a, b) => b.totalScore - a.totalScore);
+      const advanced = sorted.slice(0, bs.size).map(p => ({ ...p, status: "ADVANCED" }));
+      const eliminated = sorted.slice(bs.size).map(p => ({ ...p, status: "OUT" }));
+      return { ...state, advancedPlayers: advanced, players: [...advanced, ...eliminated], bracketSize: bs.size };
+    }
+    case "ADD_SEEDING_PAIR": {
+      return { ...state, seedingPairs: [...state.seedingPairs, action.payload] };
+    }
+    case "INIT_BRACKET": {
+      const seeds = action.seeds;
+      const bracket = buildDEBracket(seeds);
+      return { ...state, bracket, phase: PHASES.BRACKET };
+    }
+    case "SET_BRACKET_DICE": {
+      return {
+        ...state,
+        bracket: updateMatchInBracket(state.bracket, action.matchId, m => ({
+          ...m,
+          players: m.players ? m.players.map(p => p.id === action.pid ? { ...p, lane: action.lane } : p) : m.players
+        }))
+      };
+    }
+    case "UPDATE_BRACKET_MATCH": {
+      const { matchId, field, value } = action;
+      return {
+        ...state,
+        bracket: updateMatchInBracket(state.bracket, matchId, m => ({ ...m, [field]: value }))
+      };
+    }
+    case "ADVANCE_BRACKET_MATCH": {
+      return { ...state, bracket: action.bracket, players: action.players || state.players };
+    }
+    case "SET_CHAMPION": return { ...state, champion: action.payload, phase: PHASES.CHAMPION };
+    case "SET_ACTIVE_MATCH": return { ...state, activeMatchId: action.payload };
+    case "RESET": return { ...initialState };
+    default: return state;
+  }
+}
+
+function updateMatchInBracket(bracket, matchId, updater) {
+  if (!bracket) return bracket;
+  const newBracket = { ...bracket };
+  newBracket.wbRounds = bracket.wbRounds.map(round => round.map(m => m.id === matchId ? updater(m) : m));
+  newBracket.lbRounds = bracket.lbRounds.map(round => round.map(m => m.id === matchId ? updater(m) : m));
+  if (bracket.grandFinal?.id === matchId) newBracket.grandFinal = updater(bracket.grandFinal);
+  if (bracket.grandFinalReset?.id === matchId) newBracket.grandFinalReset = updater(bracket.grandFinalReset);
+  return newBracket;
 }
 
 // ============================================================
-// JACKPOT REEL COMPONENT
+// SLOT MACHINE COMPONENT
 // ============================================================
-function JackpotReel({ onResult, disabled, existingNumbers, label }) {
+function SlotMachine({ onResult, usedNumbers = [], autoSpin = false }) {
   const [spinning, setSpinning] = useState(false);
+  const [d1, setD1] = useState("?");
+  const [d2, setD2] = useState("?");
   const [result, setResult] = useState(null);
-  const [digits, setDigits] = useState(['?', '?']);
   const intervalRef = useRef(null);
-  const timeoutRef = useRef(null);
 
-  const spin = () => {
-    if (spinning || disabled || result !== null) return;
+  const spin = useCallback(() => {
+    if (spinning) return;
     setSpinning(true);
-    setDigits(['?', '?']);
-
-    let ticks = 0;
+    setResult(null);
+    let count = 0;
     intervalRef.current = setInterval(() => {
-      setDigits([Math.floor(Math.random() * 10), Math.floor(Math.random() * 10)]);
-      ticks++;
-    }, 80);
+      setD1(Math.floor(Math.random() * 10));
+      setD2(Math.floor(Math.random() * 10));
+      count++;
+      if (count > 15) {
+        clearInterval(intervalRef.current);
+        let num;
+        let attempts = 0;
+        do {
+          num = Math.floor(Math.random() * 100);
+          attempts++;
+        } while (usedNumbers.includes(num) && attempts < 200);
+        const n1 = Math.floor(num / 10);
+        const n2 = num % 10;
+        setD1(n1);
+        setD2(n2);
+        setResult(num);
+        setSpinning(false);
+        if (onResult) onResult(num);
+      }
+    }, 60);
+  }, [spinning, usedNumbers, onResult]);
 
-    timeoutRef.current = setTimeout(() => {
-      clearInterval(intervalRef.current);
-      let num;
-      let attempts = 0;
-      do {
-        num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-        attempts++;
-      } while (existingNumbers.includes(num) && attempts < 200);
-
-      const d = num.split('');
-      setDigits(d);
-      setResult(num);
-      setSpinning(false);
-      onResult(num);
-    }, 2000 + Math.random() * 500);
-  };
-
-  useEffect(() => () => {
-    clearInterval(intervalRef.current);
-    clearTimeout(timeoutRef.current);
+  useEffect(() => {
+    if (autoSpin) spin();
   }, []);
 
+  useEffect(() => () => clearInterval(intervalRef.current), []);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-      {label && <div className="text-xs text-dim mono" style={{ letterSpacing: 2 }}>{label}</div>}
-      <div style={{ display: 'flex', gap: 6 }}>
-        {[0, 1].map(i => (
-          <div key={i} className="jackpot-reel-wrapper">
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <span className="jackpot-digit" style={{ lineHeight: '80px' }}>
-                {digits[i]}
-              </span>
-            </div>
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex gap-2">
+        {[d1, d2].map((digit, i) => (
+          <div key={i} className={`slot-reel w-16 h-20 rounded-lg flex items-center justify-center text-4xl font-black border-2 ${spinning ? "slot-spin border-yellow-400 text-yellow-300" : result !== null ? "border-green-400 text-green-300" : "border-gray-600 text-gray-400"}`}
+            style={{ background: "linear-gradient(180deg,#1a1a2e,#0d0d1a)", fontFamily: "monospace", boxShadow: spinning ? "0 0 20px #f5c518" : result !== null ? "0 0 20px #22c55e" : "none" }}>
+            {digit}
           </div>
         ))}
       </div>
-      {result ? (
-        <div style={{ textAlign: 'center' }}>
-          <div className="jackpot-result">{result}</div>
-          <div className="badge badge-gold mt-2">ĐÃ KHÓA</div>
-        </div>
-      ) : (
-        <button
-          className="btn btn-gold btn-sm"
-          onClick={spin}
-          disabled={disabled || spinning}
-        >
-          {spinning ? '🎰 Đang quay...' : '🎰 QUAY SỐ'}
+      {result === null && (
+        <button onClick={spin} disabled={spinning} className="px-6 py-2 rounded font-bold text-sm transition-all" style={{ background: spinning ? "#333" : "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000", cursor: spinning ? "not-allowed" : "pointer" }}>
+          {spinning ? "ĐANG QUAY..." : "QUAY SỐ"}
         </button>
+      )}
+      {result !== null && (
+        <div className="text-2xl font-black text-green-400 animate-bounce">
+          #{String(result).padStart(2, "0")}
+        </div>
       )}
     </div>
   );
 }
 
 // ============================================================
-// DICE ROLLER COMPONENT
+// DICE COMPONENT
 // ============================================================
-function DiceRoller({ allowedValues, onResult, disabled, locked, lockedValue }) {
+function Dice({ onResult, disabled, size = "md", usedLanes = [], isThreePlayer = false }) {
   const [rolling, setRolling] = useState(false);
-  const [displayVal, setDisplayVal] = useState('?');
+  const [value, setValue] = useState(null);
+  const allowedLanes = isThreePlayer ? [1, 2, 3] : [1, 3];
 
   const roll = () => {
-    if (rolling || disabled || locked) return;
+    if (rolling || disabled || value !== null) return;
     setRolling(true);
-    let ticks = 0;
-    const iv = setInterval(() => {
-      const v = allowedValues[Math.floor(Math.random() * allowedValues.length)];
-      setDisplayVal(v);
-      ticks++;
-      if (ticks > 15) {
-        clearInterval(iv);
-        const finalVal = allowedValues[Math.floor(Math.random() * allowedValues.length)];
-        setDisplayVal(finalVal);
+    let count = 0;
+    const interval = setInterval(() => {
+      count++;
+      if (count > 12) {
+        clearInterval(interval);
+        const available = allowedLanes.filter(l => !usedLanes.includes(l));
+        if (available.length === 0) { setRolling(false); return; }
+        const res = available[Math.floor(Math.random() * available.length)];
+        setValue(res);
         setRolling(false);
-        onResult(finalVal);
+        if (onResult) onResult(res);
       }
     }, 60);
   };
 
-  const val = locked ? lockedValue : displayVal;
-  const laneClass = val === 1 ? 'lane-1' : val === 2 ? 'lane-2' : val === 3 ? 'lane-3' : '';
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <div
-        className={`dice-face${rolling ? ' rolling' : ''}${locked ? ' locked' : ''}`}
-        onClick={roll}
-        title={locked ? 'Đã khóa' : 'Nhấn để xóc xúc xắc'}
-      >
-        {val === '?' ? '?' : val}
-      </div>
-      {locked ? (
-        <span className={`lane-badge ${laneClass}`}>LANE {val}</span>
-      ) : (
-        <span className="text-xs text-dim" style={{ fontFamily: 'Share Tech Mono' }}>
-          {rolling ? 'đang xóc...' : disabled ? '🔒' : 'nhấn xóc'}
-        </span>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// PHASE INDICATOR
-// ============================================================
-function PhaseIndicator({ phase }) {
-  const phases = [
-    { id: 'setup', label: 'SETUP' },
-    { id: 'jackpot', label: 'QUAY SỐ' },
-    { id: 'qualifier', label: 'VÒNG LOẠI' },
-    { id: 'bracketSeed', label: 'XẾP BẢNG' },
-    { id: 'bracket', label: 'BẢNG ĐẤU' },
-    { id: 'complete', label: 'KẾT THÚC' },
-  ];
-
-  const phaseOrder = phases.map(p => p.id);
-  const currentIdx = phaseOrder.indexOf(phase);
-
-  return (
-    <div className="phase-steps">
-      {phases.map((p, i) => {
-        const isDone = i < currentIdx;
-        const isActive = i === currentIdx;
-        return (
-          <div key={p.id} className={`phase-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`}>
-            <div className="phase-dot">{isDone ? '✓' : i + 1}</div>
-            <div className="phase-label">{p.label}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ============================================================
-// BRACKET BUILDER LOGIC
-// ============================================================
-function buildDoubleEliminationBracket(players) {
-  // players: array of player objects, length must be power of 2
-  // Returns { winnersRounds, losersRounds, grandFinal }
-  const n = players.length;
-  // Winners bracket: round 1 has n/2 matches
-  // Build initial seeding: player[0] vs player[n-1], player[1] vs player[n-2], etc.
-  const seeded = [...players];
-
-  // Build match ids
-  let matchCounter = 1;
-  const makeMatch = (p1, p2, round, bracket, position) => ({
-    matchId: `${bracket}_R${round}_M${matchCounter++}`,
-    p1: p1 || null,
-    p2: p2 || null,
-    p1Lane: null,
-    p2Lane: null,
-    p1Score: null,
-    p2Score: null,
-    winnerId: null,
-    loserId: null,
-    status: 'pending', // pending | active | complete
-    round,
-    bracket,
-    position,
-    isBye: !p1 || !p2,
-  });
-
-  // Winners bracket rounds
-  const wRounds = [];
-  // Round 1
-  const r1Matches = [];
-  for (let i = 0; i < n / 2; i++) {
-    r1Matches.push(makeMatch(seeded[i], seeded[n - 1 - i], 1, 'W', i));
-  }
-  wRounds.push(r1Matches);
-
-  // Subsequent winner rounds (placeholders)
-  let remaining = n / 2;
-  let rn = 2;
-  while (remaining > 1) {
-    remaining = Math.ceil(remaining / 2);
-    const round = [];
-    for (let i = 0; i < remaining; i++) {
-      round.push(makeMatch(null, null, rn, 'W', i));
-    }
-    wRounds.push(round);
-    rn++;
-  }
-
-  // Losers bracket (complex structure)
-  // Standard double-elimination losers bracket
-  // LB receives losers from WB each round
-  const lRounds = [];
-  // We'll build it dynamically during match processing
-
-  return { winnersRounds: wRounds, losersRounds: lRounds, grandFinal: null, matchHistory: {} };
-}
-
-// Anti-repeat algorithm: find best placement
-function findBestPlacement(player, slots, history) {
-  if (slots.length === 0) return 0;
-  let bestScore = Infinity;
-  let bestIdx = 0;
-  slots.forEach((opponent, idx) => {
-    if (!opponent) { bestIdx = idx; bestScore = -1; return; }
-    const prevMeetings = (history[player.id] || []).filter(id => id === opponent.id).length;
-    if (prevMeetings < bestScore) {
-      bestScore = prevMeetings;
-      bestIdx = idx;
-    }
-  });
-  return bestIdx;
-}
-
-// ============================================================
-// DOUBLE ELIMINATION BRACKET VIEW
-// ============================================================
-function BracketMatchBox({ match, players, isAdmin, onScoreSet, onDiceRoll, currentPlayerId }) {
-  if (!match) return null;
-
-  const p1 = match.p1;
-  const p2 = match.p2;
-  const isActive = match.status === 'active';
-  const isComplete = match.status === 'complete';
-  const isBye = match.isBye;
-
-  const canInteract = isAdmin || (currentPlayerId && (p1?.id === currentPlayerId || p2?.id === currentPlayerId));
-
-  const renderPlayer = (player, lane, score, isWinner, isLoser) => {
-    if (!player) return (
-      <div className="match-player" style={{ color: 'var(--text-dim)', fontStyle: 'italic', fontSize: '0.8rem' }}>
-        Chờ...
-      </div>
-    );
-    if (player === 'BYE') return (
-      <div className="match-player bye">🏆 BYE (tự thắng)</div>
-    );
-    return (
-      <div className={`match-player ${isWinner ? 'winner' : ''} ${isLoser ? 'loser' : ''}`}>
-        <span className="match-number-badge">{player.jackpotNumber || '??'}</span>
-        <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 600 }}>{player.name}</span>
-        {lane && (
-          <span className={`lane-badge lane-${lane}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
-            L{lane}
-          </span>
-        )}
-        {score !== null && score !== undefined && (
-          <span className="match-score" style={{ color: isWinner ? 'var(--gold)' : 'var(--text-dim)' }}>
-            {score}
-          </span>
-        )}
-        {isWinner && <span>🏆</span>}
-      </div>
-    );
+  const dotPositions = {
+    1: [[50, 50]],
+    2: [[25, 25], [75, 75]],
+    3: [[25, 25], [50, 50], [75, 75]],
+    4: [[25, 25], [75, 25], [25, 75], [75, 75]],
+    5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
+    6: [[25, 20], [75, 20], [25, 50], [75, 50], [25, 80], [75, 80]],
   };
 
-  return (
-    <div className={`match-box ${isActive ? 'active' : ''} ${isComplete ? 'completed' : ''}`}
-      style={{ minWidth: 170, maxWidth: 200 }}>
-      {isBye && p1 ? (
-        <>
-          {renderPlayer(p1, match.p1Lane, match.p1Score, true, false)}
-          {renderPlayer('BYE', null, null, false, false)}
-        </>
-      ) : (
-        <>
-          {renderPlayer(p1, match.p1Lane, match.p1Score,
-            match.winnerId === p1?.id,
-            match.loserId === p1?.id
-          )}
-          <div style={{ height: 1, background: 'var(--border)' }} />
-          {renderPlayer(p2, match.p2Lane, match.p2Score,
-            match.winnerId === p2?.id,
-            match.loserId === p2?.id
-          )}
-        </>
-      )}
-      {isActive && canInteract && (
-        <div style={{
-          padding: '6px 8px',
-          background: 'var(--bg4)',
-          borderTop: '1px solid var(--gold)30',
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <span style={{ fontSize: '0.65rem', color: 'var(--gold)', fontFamily: 'Share Tech Mono' }}>
-            ▶ ĐANG ĐẤU
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// MATCH DETAIL MODAL
-// ============================================================
-function MatchDetailModal({ match, players, isAdmin, onClose, onComplete, currentPlayerId, toastFn }) {
-  const [p1Lane, setP1Lane] = useState(match.p1Lane);
-  const [p2Lane, setP2Lane] = useState(match.p2Lane);
-  const [p1Score, setP1Score] = useState(match.p1Score);
-  const [p2Score, setP2Score] = useState(match.p2Score);
-  const [p1DiceLocked, setP1DiceLocked] = useState(match.p1Lane !== null);
-  const [p2DiceLocked, setP2DiceLocked] = useState(match.p2Lane !== null);
-
-  const p1 = match.p1;
-  const p2 = match.p2;
-  const isTwoPlayer = !!(p1 && p2 && p2 !== 'BYE');
-  const allowedDice = isTwoPlayer ? [1, 3] : [1, 2, 3];
-
-  const canP1Dice = isAdmin || currentPlayerId === p1?.id;
-  const canP2Dice = isAdmin || currentPlayerId === p2?.id;
-  const canScore = isAdmin;
-
-  const handleSubmit = () => {
-    if (!p1DiceLocked || (!match.isBye && !p2DiceLocked)) {
-      toastFn('⚠️ Cần xóc xúc xắc trước!', 'error'); return;
-    }
-    if (p1Score === null || (!match.isBye && p2Score === null)) {
-      toastFn('⚠️ Cần nhập điểm cho tất cả người chơi!', 'error'); return;
-    }
-    let winnerId, loserId;
-    if (match.isBye || !p2) {
-      winnerId = p1?.id;
-      loserId = null;
-    } else if (p1Score > p2Score) {
-      winnerId = p1.id; loserId = p2.id;
-    } else if (p2Score > p1Score) {
-      winnerId = p2.id; loserId = p1.id;
-    } else {
-      toastFn('⚠️ Điểm bằng nhau! Admin hãy chọn người thắng thủ công.', 'error');
-      return;
-    }
-    onComplete({ ...match, p1Lane, p2Lane, p1Score, p2Score, winnerId, loserId, status: 'complete' });
-    onClose();
-  };
+  const sz = size === "sm" ? 40 : size === "md" ? 56 : 72;
+  const dots = value ? dotPositions[value] || [] : [];
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      z: 200, padding: 20, zIndex: 200
-    }}>
-      <div style={{
-        background: 'var(--bg2)', border: '1px solid var(--gold)',
-        borderRadius: 16, padding: 24, maxWidth: 480, width: '100%',
-        maxHeight: '90vh', overflowY: 'auto',
-        boxShadow: '0 0 40px var(--gold)30'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div className="section-header" style={{ marginBottom: 0 }}>
-            ⚔️ CHI TIẾT VÁN ĐẤU
-          </div>
-          <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-          {/* Player 1 */}
-          <div style={{ background: 'var(--bg3)', borderRadius: 10, padding: 14, border: '1px solid var(--border)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 8, fontSize: '0.9rem' }}>
-              <span className="badge badge-gold" style={{ marginRight: 6 }}>{p1?.jackpotNumber || '??'}</span>
-              {p1?.name || 'Chờ...'}
-            </div>
-            {!match.isBye && p1 && (
-              <>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: 8 }}>XÓC XÚC XẮC:</div>
-                <DiceRoller
-                  allowedValues={allowedDice}
-                  onResult={v => { setP1Lane(v); setP1DiceLocked(true); }}
-                  disabled={!canP1Dice || p1DiceLocked}
-                  locked={p1DiceLocked}
-                  lockedValue={p1Lane}
-                />
-                {canScore && (
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: 6 }}>ĐIỂM:</div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {[0,1,2,3].map(s => (
-                        <button key={s} className={`score-btn ${p1Score === s ? 'selected' : ''}`}
-                          onClick={() => setP1Score(s)}>{s}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {!canScore && p1Score !== null && (
-                  <div style={{ marginTop: 8 }}>
-                    <span className="orbitron text-gold" style={{ fontSize: '1.2rem', fontWeight: 900 }}>{p1Score}</span>
-                    <span className="text-dim text-xs"> điểm</span>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Player 2 */}
-          <div style={{ background: 'var(--bg3)', borderRadius: 10, padding: 14, border: '1px solid var(--border)' }}>
-            {match.isBye ? (
-              <div style={{ textAlign: 'center', color: 'var(--cyan)', padding: '20px 0' }}>
-                🏆 BYE<br/>
-                <span className="text-dim text-xs">Tự động thắng</span>
-              </div>
-            ) : (
-              <>
-                <div style={{ fontWeight: 700, marginBottom: 8, fontSize: '0.9rem' }}>
-                  <span className="badge badge-gold" style={{ marginRight: 6 }}>{p2?.jackpotNumber || '??'}</span>
-                  {p2?.name || 'Chờ...'}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: 8 }}>XÓC XÚC XẮC:</div>
-                <DiceRoller
-                  allowedValues={allowedDice}
-                  onResult={v => { setP2Lane(v); setP2DiceLocked(true); }}
-                  disabled={!canP2Dice || p2DiceLocked}
-                  locked={p2DiceLocked}
-                  lockedValue={p2Lane}
-                />
-                {canScore && (
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: 6 }}>ĐIỂM:</div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {[0,1,2,3].map(s => (
-                        <button key={s} className={`score-btn ${p2Score === s ? 'selected' : ''}`}
-                          onClick={() => setP2Score(s)}>{s}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {!canScore && p2Score !== null && (
-                  <div style={{ marginTop: 8 }}>
-                    <span className="orbitron text-gold" style={{ fontSize: '1.2rem', fontWeight: 900 }}>{p2Score}</span>
-                    <span className="text-dim text-xs"> điểm</span>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        {isAdmin && (
-          <button className="btn btn-gold w-full" onClick={handleSubmit}
-            disabled={!p1DiceLocked || (!match.isBye && !p2DiceLocked)}>
-            ✅ XÁC NHẬN KẾT QUẢ
-          </button>
-        )}
-        {!isAdmin && (
-          <div className="text-center text-dim text-sm" style={{ marginTop: 8 }}>
-            🔒 Chỉ Admin mới có thể xác nhận kết quả
-          </div>
-        )}
+    <div className="flex flex-col items-center gap-1">
+      <div onClick={disabled || value !== null ? undefined : roll}
+        className={`relative rounded-lg border-2 transition-all ${rolling ? "animate-spin border-yellow-400" : value ? "border-green-400" : disabled ? "border-gray-700 opacity-40" : "border-gray-500 hover:border-yellow-400 cursor-pointer"}`}
+        style={{ width: sz, height: sz, background: value ? "#1a3a1a" : "#1a1a2e", boxShadow: value ? "0 0 10px #22c55e" : "none" }}>
+        <svg width={sz} height={sz} viewBox="0 0 100 100">
+          {dots.map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="10" fill={value ? "#22c55e" : "#888"} />
+          ))}
+        </svg>
+        {rolling && <div className="absolute inset-0 flex items-center justify-center text-yellow-400 text-lg font-bold">⚄</div>}
+      </div>
+      <div className="text-xs font-bold" style={{ color: value ? "#22c55e" : "#666" }}>
+        {value ? `LÀN ${value}` : disabled ? "—" : "LĂN"}
       </div>
     </div>
   );
@@ -1279,1201 +386,933 @@ function MatchDetailModal({ match, players, isAdmin, onClose, onComplete, curren
 // MAIN APP
 // ============================================================
 function App() {
-  const [role, setRole] = useState(null); // null | 'guest' | 'admin'
-  const [playerName, setPlayerName] = useState('');
-  const [adminPass, setAdminPass] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [adminPass, setAdminPass] = useState("");
   const [passError, setPassError] = useState(false);
-  const [toasts, setToasts] = useState([]);
+  const [guestRoom, setGuestRoom] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [shakePass, setShakePass] = useState(false);
+  const [newPlayerName, setNewPlayerName] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [spinningFor, setSpinningFor] = useState(null);
+  const [dualSpin1, setDualSpin1] = useState(null);
+  const [dualSpin2, setDualSpin2] = useState(null);
+  const [dualSpinDone, setDualSpinDone] = useState(false);
+  const [currentSeedPair, setCurrentSeedPair] = useState([null, null]);
+  const [activeScoreMatch, setActiveScoreMatch] = useState(null);
+  const [scoreInputs, setScoreInputs] = useState({});
+  const [outAnimIds, setOutAnimIds] = useState([]);
+  const [champAnim, setChampAnim] = useState(false);
 
-  // Tournament state
-  const [tournament, setTournament] = useState(null);
-  const [activeTab, setActiveTab] = useState('bracket');
-  const [selectedMatch, setSelectedMatch] = useState(null);
-  const [showNewTournament, setShowNewTournament] = useState(false);
-
-  // New tournament form
-  const [formName, setFormName] = useState('');
-  const [formPlayers, setFormPlayers] = useState([]);
-  const [newPlayerInput, setNewPlayerInput] = useState('');
-  const [formLocked, setFormLocked] = useState(false);
-  const [qualifierRounds, setQualifierRounds] = useState(3);
-
-  const toast = useCallback((msg, type = 'info') => {
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, msg, type }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
-  }, []);
-
-  // ---- Auth ----
-  const loginGuest = () => {
-    if (!playerName.trim()) { toast('⚠️ Nhập tên của bạn!', 'error'); return; }
-    setRole('guest');
-  };
-
-  const loginAdmin = () => {
-    if (adminPass === 'Phuong090') {
-      setRole('admin');
-      setPlayerName('Admin');
+  // ---- LANDING ----
+  const handleAdminLogin = () => {
+    if (adminPass === ADMIN_PASS) {
+      const code = genRoomCode();
+      dispatch({ type: "SET_ROLE", payload: "ADMIN" });
+      dispatch({ type: "SET_ROOM_CODE", payload: code });
+      dispatch({ type: "SET_PHASE", payload: PHASES.LOBBY });
     } else {
+      setShakePass(true);
       setPassError(true);
-      setTimeout(() => setPassError(false), 600);
-      toast('❌ Sai mật khẩu!', 'error');
+      setTimeout(() => setShakePass(false), 600);
     }
   };
 
-  // ---- Player management ----
-  const addPlayer = () => {
-    if (!newPlayerInput.trim()) return;
-    if (formPlayers.some(p => p.name.toLowerCase() === newPlayerInput.trim().toLowerCase())) {
-      toast('⚠️ Tên đã tồn tại!', 'error'); return;
-    }
-    const id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-    setFormPlayers(prev => [...prev, {
-      id,
-      name: newPlayerInput.trim(),
-      jackpotNumber: null,
-      qualifierScore: 0,
-      status: 'active',
-    }]);
-    setNewPlayerInput('');
+  const handleGuestJoin = () => {
+    if (guestRoom.length < 4) return;
+    dispatch({ type: "SET_ROLE", payload: "GUEST" });
+    dispatch({ type: "SET_ROOM_CODE", payload: guestRoom.toUpperCase() });
+    dispatch({ type: "SET_PHASE", payload: PHASES.LOBBY });
   };
 
-  const removePlayer = (id) => {
-    if (formLocked) return;
-    setFormPlayers(prev => prev.filter(p => p.id !== id));
+  const handleGuestRegister = () => {
+    if (!guestName.trim()) return;
+    dispatch({ type: "ADD_PLAYER", payload: guestName.trim() });
+    setGuestName("");
   };
 
-  const lockPlayers = () => {
-    if (formPlayers.length < 8) { toast('⚠️ Cần ít nhất 8 người chơi!', 'error'); return; }
-    if (formPlayers.length > 63) { toast('⚠️ Tối đa 63 người chơi!', 'error'); return; }
-    setFormLocked(true);
-    toast('✅ Đã khóa danh sách!', 'success');
+  // ---- JACKPOT ----
+  const handleJackpotResult = (playerId, num) => {
+    dispatch({ type: "ASSIGN_JACKPOT", id: playerId, num });
+    setSpinningFor(null);
   };
 
-  const createTournament = () => {
-    if (!formName.trim()) { toast('⚠️ Nhập tên giải đấu!', 'error'); return; }
-    const count = formPlayers.length;
-    const target = getBracketTarget(count);
-    const hasQualifier = needsQualifier(count);
+  const allJackpotsAssigned = state.players.every(p => p.jackpotNum !== null);
 
-    const t = {
-      name: formName.trim(),
-      phase: 'jackpot',
-      players: [...formPlayers],
-      qualifierRounds: hasQualifier ? qualifierRounds : 0,
-      qualifierData: [],
-      currentQualifierRound: 0,
-      bracketTarget: target,
-      hasQualifier,
-      bracketPairs: [],
-      winnersRounds: [],
-      losersRounds: [],
-      grandFinal: null,
-      grandFinalReset: null,
-      matchHistory: {},
-      champion: null,
-      lbChampion: null,
-    };
+  // ---- QUALIFIERS ----
+  const getCurrentRoundMatches = () => state.qualifierMatches.filter(m => m.round === state.currentQualRound);
 
-    setTournament(t);
-    setShowNewTournament(false);
-    setActiveTab('players');
-    toast(`🏆 Đã tạo giải "${t.name}"!`, 'success');
+  const allDiceRolled = (match) => match.players.every(p => p.lane !== null);
+  const allScoresEntered = (match) => match.players.every(p => p.score !== null);
+
+  const handleQualDice = (matchId, playerId, lane) => {
+    dispatch({ type: "SET_QUAL_DICE", matchId, playerId, lane });
   };
 
-  // ---- Jackpot number assignment ----
-  const assignJackpotNumber = (playerId, number) => {
-    setTournament(prev => ({
-      ...prev,
-      players: prev.players.map(p =>
-        p.id === playerId ? { ...p, jackpotNumber: number } : p
-      )
-    }));
-    toast(`🎰 Số ${number} đã được gán!`, 'success');
+  const handleQualScore = (matchId, playerId, score) => {
+    dispatch({ type: "SET_QUAL_SCORE", matchId, playerId, score });
   };
 
-  const allJackpotsAssigned = tournament?.players.every(p => p.jackpotNumber !== null);
-
-  const proceedFromJackpot = () => {
-    if (!allJackpotsAssigned) { toast('⚠️ Tất cả người chơi phải quay số!', 'error'); return; }
-    if (tournament.hasQualifier) {
-      setTournament(prev => ({ ...prev, phase: 'qualifier' }));
-      initQualifierRound(tournament, 1);
+  const handleFinishQualRound = () => {
+    dispatch({ type: "FINISH_QUALIFIER_ROUND" });
+    if (state.currentQualRound < state.qualifierRounds) {
+      dispatch({ type: "INIT_QUALIFIER_ROUND" });
     } else {
-      setTournament(prev => ({ ...prev, phase: 'bracketSeed' }));
+      dispatch({ type: "RESOLVE_QUALIFIERS" });
+      const eliminated = [...state.players].sort((a, b) => b.totalScore - a.totalScore).slice(getBracketSize(state.players.length)?.size || 8);
+      setOutAnimIds(eliminated.map(p => p.id));
+      setTimeout(() => {
+        dispatch({ type: "SET_PHASE", payload: PHASES.SEEDING });
+      }, 1500);
     }
-    toast('✅ Chuyển sang giai đoạn tiếp!', 'success');
   };
 
-  // ---- Qualifier Rounds ----
-  const initQualifierRound = (t, roundNum) => {
-    const activePlayers = t.players.filter(p => p.status === 'active');
-    const shuffled = shuffle(activePlayers);
-    const groups = [];
-    let i = 0;
-    while (i < shuffled.length) {
-      const remaining = shuffled.length - i;
-      if (remaining === 2 || remaining === 1) {
-        groups.push(shuffled.slice(i));
-        i += remaining;
-      } else {
-        groups.push(shuffled.slice(i, i + 3));
-        i += 3;
-      }
-    }
-    const roundData = {
-      round: roundNum,
-      groups: groups.map(g => ({
-        players: g,
-        lanes: {},
-        scores: {},
-        complete: false,
-      }))
-    };
+  // ---- SEEDING ----
+  const usedJackpots = state.seedingPairs.flatMap(p => [p[0]?.jackpotNum, p[1]?.jackpotNum]).filter(Boolean);
+  const unseededPlayers = (state.advancedPlayers.length > 0 ? state.advancedPlayers : state.players).filter(p => !usedJackpots.includes(p.jackpotNum));
 
-    setTournament(prev => ({
-      ...prev,
-      qualifierData: [...(prev.qualifierData || []), roundData],
-      currentQualifierRound: roundNum,
+  const handleSeedSpin1Result = (num) => {
+    const p = state.players.find(pl => pl.jackpotNum === num && !usedJackpots.includes(pl.jackpotNum));
+    setCurrentSeedPair([p || null, currentSeedPair[1]]);
+    setDualSpin1(num);
+  };
+
+  const handleSeedSpin2Result = (num) => {
+    const p = state.players.find(pl => pl.jackpotNum === num && !usedJackpots.includes(pl.jackpotNum) && pl.jackpotNum !== dualSpin1);
+    setCurrentSeedPair([currentSeedPair[0], p || null]);
+    setDualSpin2(num);
+    setDualSpinDone(true);
+  };
+
+  const confirmSeedPair = () => {
+    if (currentSeedPair[0] && currentSeedPair[1]) {
+      dispatch({ type: "ADD_SEEDING_PAIR", payload: currentSeedPair });
+      setCurrentSeedPair([null, null]);
+      setDualSpin1(null);
+      setDualSpin2(null);
+      setDualSpinDone(false);
+    }
+  };
+
+  const initBracket = () => {
+    const seeds = state.seedingPairs.flatMap(pair => pair);
+    dispatch({ type: "INIT_BRACKET", seeds });
+  };
+
+  // ---- BRACKET ----
+  const getPlayerById = (id) => state.players.find(p => p.id === id);
+
+  const handleBracketMatchAction = (match) => {
+    setActiveScoreMatch(match.id);
+    const init = {};
+    if (match.p1) init[match.p1] = match.score1 ?? "";
+    if (match.p2) init[match.p2] = match.score2 ?? "";
+    if (match.p3) init[match.p3] = match.score3 ?? "";
+    setScoreInputs(init);
+  };
+
+  const submitBracketScores = (match) => {
+    if (!state.bracket) return;
+    const p1 = match.p1, p2 = match.p2;
+    const s1 = parseInt(scoreInputs[p1] ?? 0);
+    const s2 = parseInt(scoreInputs[p2] ?? 0);
+    if (isNaN(s1) || isNaN(s2)) return;
+
+    let winner = s1 > s2 ? p1 : s2 > s1 ? p2 : null;
+    let loser = winner === p1 ? p2 : winner === p2 ? p1 : null;
+
+    let newBracket = updateMatchInBracket(state.bracket, match.id, m => ({
+      ...m, score1: s1, score2: s2, winner, loser, status: "DONE"
     }));
-  };
 
-  const handleQualifierDice = (roundIdx, groupIdx, playerId, value) => {
-    setTournament(prev => {
-      const newData = prev.qualifierData.map((rd, ri) => {
-        if (ri !== roundIdx) return rd;
-        return {
-          ...rd,
-          groups: rd.groups.map((g, gi) => {
-            if (gi !== groupIdx) return g;
-            return { ...g, lanes: { ...g.lanes, [playerId]: value } };
-          })
-        };
-      });
-      return { ...prev, qualifierData: newData };
-    });
-  };
-
-  const handleQualifierScore = (roundIdx, groupIdx, playerId, score) => {
-    setTournament(prev => {
-      const newData = prev.qualifierData.map((rd, ri) => {
-        if (ri !== roundIdx) return rd;
-        return {
-          ...rd,
-          groups: rd.groups.map((g, gi) => {
-            if (gi !== groupIdx) return g;
-            return { ...g, scores: { ...g.scores, [playerId]: score } };
-          })
-        };
-      });
-      return { ...prev, qualifierData: newData };
-    });
-  };
-
-  const completeQualifierGroup = (roundIdx, groupIdx) => {
-    setTournament(prev => {
-      const group = prev.qualifierData[roundIdx].groups[groupIdx];
-      // Validate all players have dice and score
-      for (const p of group.players) {
-        if (group.lanes[p.id] === undefined) {
-          toast('⚠️ Chưa xóc xúc xắc!', 'error');
-          return prev;
-        }
-        if (group.scores[p.id] === undefined) {
-          toast('⚠️ Chưa nhập điểm!', 'error');
-          return prev;
-        }
-      }
-      // Update players' qualifier scores
-      let updatedPlayers = prev.players.map(p => {
-        const s = group.scores[p.id];
-        if (s !== undefined) return { ...p, qualifierScore: (p.qualifierScore || 0) + s };
-        return p;
-      });
-      const newData = prev.qualifierData.map((rd, ri) => {
-        if (ri !== roundIdx) return rd;
-        return {
-          ...rd,
-          groups: rd.groups.map((g, gi) => {
-            if (gi !== groupIdx) return g;
-            return { ...g, complete: true };
-          })
-        };
-      });
-      return { ...prev, qualifierData: newData, players: updatedPlayers };
-    });
-    toast('✅ Ván đấu hoàn thành!', 'success');
-  };
-
-  const isQualifierRoundComplete = (roundIdx) => {
-    if (!tournament?.qualifierData[roundIdx]) return false;
-    return tournament.qualifierData[roundIdx].groups.every(g => g.complete);
-  };
-
-  const advanceQualifierRound = () => {
-    const nextRound = tournament.currentQualifierRound + 1;
-    if (nextRound <= tournament.qualifierRounds) {
-      initQualifierRound(tournament, nextRound);
-      toast(`✅ Bắt đầu vòng loại ${nextRound}!`, 'success');
-    } else {
-      // All qualifier rounds done — finalize
-      finalizeQualifiers();
-    }
-  };
-
-  const finalizeQualifiers = () => {
-    const target = tournament.bracketTarget;
-    const sorted = [...tournament.players].sort((a, b) => (b.qualifierScore || 0) - (a.qualifierScore || 0));
-    const qualifiedPlayers = sorted.slice(0, target).map(p => ({ ...p, status: 'active' }));
-    const eliminatedPlayers = sorted.slice(target).map(p => ({ ...p, status: 'out' }));
-    const allPlayers = [...qualifiedPlayers, ...eliminatedPlayers];
-
-    setTournament(prev => ({
-      ...prev,
-      players: allPlayers,
-      phase: 'bracketSeed',
-    }));
-    toast(`🏆 ${target} người vào bảng đấu chính!`, 'success');
-  };
-
-  // ---- Bracket Seeding ----
-  const [seedingPairs, setSeedingPairs] = useState([]);
-  const [seedingPlayers, setSeedingPlayers] = useState([]);
-  const [spinningPair, setSpinningPair] = useState(false);
-
-  useEffect(() => {
-    if (tournament?.phase === 'bracketSeed') {
-      const qualified = tournament.players.filter(p => p.status === 'active');
-      setSeedingPlayers(shuffle(qualified));
-      setSeedingPairs([]);
-    }
-  }, [tournament?.phase]);
-
-  const spinNextPair = () => {
-    if (seedingPlayers.length < 2 || spinningPair) return;
-    setSpinningPair(true);
-    setTimeout(() => {
-      const remaining = [...seedingPlayers];
-      const idx1 = Math.floor(Math.random() * remaining.length);
-      const p1 = remaining.splice(idx1, 1)[0];
-      const idx2 = Math.floor(Math.random() * remaining.length);
-      const p2 = remaining.splice(idx2, 1)[0];
-      setSeedingPairs(prev => [...prev, [p1, p2]]);
-      setSeedingPlayers(remaining);
-      setSpinningPair(false);
-      toast(`🎰 Cặp đấu: ${p1.name} vs ${p2.name}`, 'success');
-    }, 1500);
-  };
-
-  const confirmBracketSeed = () => {
-    // Build the bracket from pairs + any byes
-    const allQualified = tournament.players.filter(p => p.status === 'active');
-    const target = tournament.bracketTarget;
-    const pairs = [...seedingPairs];
-
-    // If odd player left, they get a bye
-    if (seedingPlayers.length === 1) {
-      pairs.push([seedingPlayers[0], null]);
-    }
-
-    // Build winners bracket
-    let matchCounter = [1];
-    const makeMatch = (p1, p2, round, bracket, position) => ({
-      matchId: `${bracket}_R${round}_P${position}`,
-      p1: p1 || null,
-      p2: p2 || null,
-      p1Lane: null, p2Lane: null,
-      p1Score: null, p2Score: null,
-      winnerId: null, loserId: null,
-      status: (p1 || p2) ? ((!p1 || !p2) ? 'bye' : 'pending') : 'pending',
-      round, bracket, position,
-      isBye: !!((p1 && !p2) || (!p1 && p2)),
-    });
-
-    // Round 1 of Winners bracket
-    const wR1 = pairs.map((pair, i) => makeMatch(pair[0], pair[1], 1, 'W', i));
-
-    // Auto-resolve byes
-    const wR1Resolved = wR1.map(m => {
-      if (m.isBye) {
-        const winner = m.p1 || m.p2;
-        return { ...m, winnerId: winner?.id, status: 'complete', p1Score: m.p1 ? 3 : null, p2Score: m.p2 ? 3 : null };
-      }
-      return { ...m, status: 'active' };
-    });
-
-    // Build subsequent rounds (placeholders)
-    const totalWRounds = Math.log2(target);
-    const allWRounds = [wR1Resolved];
-    let prevCount = wR1Resolved.length;
-    for (let r = 2; r <= totalWRounds; r++) {
-      prevCount = Math.ceil(prevCount / 2);
-      const round = Array.from({ length: prevCount }, (_, i) => makeMatch(null, null, r, 'W', i));
-      allWRounds.push(round);
-    }
-
-    // Build losers bracket structure
-    // Standard DE: LB gets n/2 losers from WR1, then plays them
-    // For simplicity: build LB rounds as placeholders
-    const totalLBRounds = (totalWRounds - 1) * 2;
-    const allLRounds = [];
-    let lbCount = target / 4;
-    for (let r = 1; r <= totalLBRounds; r++) {
-      const round = Array.from({ length: Math.max(1, lbCount) }, (_, i) => makeMatch(null, null, r, 'L', i));
-      if (r % 2 === 0 && lbCount > 1) lbCount = Math.ceil(lbCount / 2);
-      allLRounds.push(round);
-    }
-
-    // Populate LB Round 1 with losers from WB Round 1
-    const wR1Losers = wR1Resolved
-      .filter(m => m.loserId)
-      .map(m => m.p1?.id === m.loserId ? m.p1 : m.p2)
-      .filter(Boolean);
-
-    // Place into LB R1
-    const lbR1 = shuffle(wR1Losers);
-    for (let i = 0; i < allLRounds[0]?.length && i * 2 < lbR1.length; i++) {
-      allLRounds[0][i] = {
-        ...allLRounds[0][i],
-        p1: lbR1[i * 2] || null,
-        p2: lbR1[i * 2 + 1] || null,
-        status: (lbR1[i * 2] && lbR1[i * 2 + 1]) ? 'active' : 'pending',
-      };
-    }
-
-    const grandFinal = makeMatch(null, null, 1, 'GF', 0);
-
-    setTournament(prev => ({
-      ...prev,
-      phase: 'bracket',
-      winnersRounds: allWRounds,
-      losersRounds: allLRounds,
-      grandFinal,
-      matchHistory: {},
-    }));
-    toast('🏆 Bảng đấu đã được tạo!', 'success');
-    setActiveTab('bracket');
-  };
-
-  // ---- Match completion ----
-  const handleMatchComplete = (updatedMatch) => {
-    setTournament(prev => {
-      let newWR = prev.winnersRounds.map(r => r.map(m => m.matchId === updatedMatch.matchId ? updatedMatch : m));
-      let newLR = prev.losersRounds.map(r => r.map(m => m.matchId === updatedMatch.matchId ? updatedMatch : m));
-      let newGF = prev.grandFinal?.matchId === updatedMatch.matchId ? updatedMatch : prev.grandFinal;
-      let newGFR = prev.grandFinalReset?.matchId === updatedMatch.matchId ? updatedMatch : prev.grandFinalReset;
-
-      const winner = prev.players.find(p => p.id === updatedMatch.winnerId);
-      const loser = prev.players.find(p => p.id === updatedMatch.loserId);
-
-      // Update match history
-      let newHistory = { ...prev.matchHistory };
-      if (winner && loser) {
-        newHistory[winner.id] = [...(newHistory[winner.id] || []), loser.id];
-        newHistory[loser.id] = [...(newHistory[loser.id] || []), winner.id];
-      }
-
-      // Propagate winner through WB
-      const wRoundIdx = newWR.findIndex(r => r.some(m => m.matchId === updatedMatch.matchId));
-      if (wRoundIdx !== -1) {
-        const matchIdx = newWR[wRoundIdx].findIndex(m => m.matchId === updatedMatch.matchId);
-        // Advance winner to next WB round
-        const nextRoundIdx = wRoundIdx + 1;
-        if (nextRoundIdx < newWR.length && winner) {
-          const nextMatchIdx = Math.floor(matchIdx / 2);
-          const slot = matchIdx % 2 === 0 ? 'p1' : 'p2';
-          newWR = newWR.map((r, ri) => ri !== nextRoundIdx ? r : r.map((m, mi) => {
-            if (mi !== nextMatchIdx) return m;
-            const updated = { ...m, [slot]: winner };
-            if (updated.p1 && updated.p2) updated.status = 'active';
-            return updated;
-          }));
-        } else if (nextRoundIdx >= newWR.length && winner) {
-          // WB champion goes to Grand Final
-          newGF = { ...newGF, p1: winner };
-          if (newGF.p1 && newGF.p2) newGF.status = 'active';
-        }
-
-        // Drop loser to LB
-        if (loser && newLR.length > 0) {
-          // Find available spot in appropriate LB round
-          const lbTargetRound = wRoundIdx * 2;
-          const lbRoundIdx = Math.min(lbTargetRound, newLR.length - 1);
-          let placed = false;
-          newLR = newLR.map((r, ri) => {
-            if (ri !== lbRoundIdx || placed) return r;
-            return r.map(m => {
-              if (placed) return m;
-              if (!m.p1 || !m.p2) {
-                placed = true;
-                const slot = !m.p1 ? 'p1' : 'p2';
-                const updated = { ...m, [slot]: loser };
-                if (updated.p1 && updated.p2) updated.status = 'active';
-                return updated;
-              }
-              return m;
-            });
-          });
-        }
-      }
-
-      // Propagate winner through LB
-      const lRoundIdx = newLR.findIndex(r => r.some(m => m.matchId === updatedMatch.matchId));
-      if (lRoundIdx !== -1) {
-        const matchIdx = newLR[lRoundIdx].findIndex(m => m.matchId === updatedMatch.matchId);
-
-        // Loser in LB → OUT
-        if (loser) {
-          prev.players.find(p => p.id === loser.id) && (
-            newWR = newWR // just note it
-          );
-          // Mark player as out
-          const outPlayer = { ...loser, status: 'out' };
-          // Update in players list handled below
-        }
-
-        // Advance LB winner
-        const nextLBRound = lRoundIdx + 1;
-        if (nextLBRound < newLR.length && winner) {
-          const nextMatchIdx = Math.floor(matchIdx / 2);
-          const slot = matchIdx % 2 === 0 ? 'p1' : 'p2';
-          newLR = newLR.map((r, ri) => ri !== nextLBRound ? r : r.map((m, mi) => {
-            if (mi !== nextMatchIdx) return m;
-            const updated = { ...m, [slot]: winner };
-            if (updated.p1 && updated.p2) updated.status = 'active';
-            return updated;
-          }));
-        } else if (nextLBRound >= newLR.length && winner) {
-          // LB champion goes to Grand Final
-          newGF = { ...newGF, p2: winner };
-          if (newGF.p1 && newGF.p2) newGF.status = 'active';
-        }
-      }
-
-      // Grand Final
-      const isGF = prev.grandFinal?.matchId === updatedMatch.matchId;
-      const isGFR = prev.grandFinalReset?.matchId === updatedMatch.matchId;
-      if (isGF && winner && loser) {
-        // If WB player wins → champion
-        // If LB player wins → grand final reset
-        const wbChampion = newGF?.p1;
-        if (winner.id === wbChampion?.id) {
-          return { ...prev, winnersRounds: newWR, losersRounds: newLR, grandFinal: newGF,
-            grandFinalReset: newGFR, matchHistory: newHistory, champion: winner,
-            phase: 'complete' };
+    // Advance in Winners Bracket
+    if (match.bracket === "WB") {
+      newBracket = advanceWB(newBracket, match, winner, loser);
+    } else if (match.bracket === "LB") {
+      newBracket = advanceLB(newBracket, match, winner, loser);
+    } else if (match.bracket === "GF") {
+      if (!match.isReset) {
+        if (winner === match.p1) {
+          // WB winner wins GF
+          setChampAnim(true);
+          setTimeout(() => dispatch({ type: "SET_CHAMPION", payload: getPlayerById(winner) }), 1500);
         } else {
-          // Reset match
-          const resetMatch = {
-            matchId: 'GF_RESET',
-            p1: wbChampion, p2: winner,
-            p1Lane: null, p2Lane: null,
-            p1Score: null, p2Score: null,
-            winnerId: null, loserId: null,
-            status: 'active', round: 2, bracket: 'GF', position: 0, isBye: false,
-          };
-          return { ...prev, winnersRounds: newWR, losersRounds: newLR, grandFinal: updatedMatch,
-            grandFinalReset: resetMatch, matchHistory: newHistory };
+          // LB winner wins, need reset
+          newBracket = { ...newBracket, grandFinalReset: { ...newBracket.grandFinalReset, p1: winner, p2: match.p1, status: "PENDING" } };
         }
+      } else {
+        setChampAnim(true);
+        setTimeout(() => dispatch({ type: "SET_CHAMPION", payload: getPlayerById(winner) }), 1500);
       }
-      if (isGFR && winner) {
-        return { ...prev, winnersRounds: newWR, losersRounds: newLR, grandFinal: newGF,
-          grandFinalReset: updatedMatch, matchHistory: newHistory, champion: winner, phase: 'complete' };
-      }
+    }
 
-      // Update OUT status for loser in LB
-      let updatedPlayers = prev.players.map(p => {
-        if (p.id === updatedMatch.loserId && lRoundIdx !== -1) {
-          return { ...p, status: 'out' };
-        }
-        return p;
-      });
-
-      return { ...prev, winnersRounds: newWR, losersRounds: newLR, grandFinal: newGF,
-        grandFinalReset: newGFR, matchHistory: newHistory, players: updatedPlayers };
-    });
+    dispatch({ type: "ADVANCE_BRACKET_MATCH", bracket: newBracket });
+    setActiveScoreMatch(null);
   };
 
-  // ---- Get current player ----
-  const currentPlayer = tournament?.players.find(p => p.name === playerName);
-  const isAdmin = role === 'admin';
-  const existingNumbers = tournament?.players.filter(p => p.jackpotNumber).map(p => p.jackpotNumber) || [];
+  function advanceWB(bracket, match, winner, loser) {
+    let b = { ...bracket };
+    const rIdx = match.round - 1;
+    const mIdx = parseInt(match.id.split("-M")[1]);
+    const nextRIdx = rIdx + 1;
+
+    if (nextRIdx < b.wbRounds.length) {
+      const nextMIdx = Math.floor(mIdx / 2);
+      const slot = mIdx % 2 === 0 ? "p1" : "p2";
+      b.wbRounds = b.wbRounds.map((r, ri) => ri === nextRIdx ? r.map((m2, mi) => mi === nextMIdx ? { ...m2, [slot]: winner, status: m2.p1 && m2.p2 ? "PENDING" : "WAITING" } : m2) : r);
+    } else {
+      // WB finalist goes to Grand Final as p1
+      b.grandFinal = { ...b.grandFinal, p1: winner, status: b.grandFinal.p2 ? "PENDING" : "WAITING" };
+    }
+
+    // Loser drops to LB
+    if (loser) {
+      b = dropToLB(b, match, loser);
+    }
+    return b;
+  }
+
+  function dropToLB(bracket, wbMatch, loser) {
+    let b = { ...bracket };
+    const wbRound = wbMatch.round;
+    // Map WB round to LB round
+    const lbRoundIdx = wbRound === 1 ? 0 : wbRound * 2 - 3;
+    if (lbRoundIdx >= 0 && lbRoundIdx < b.lbRounds.length) {
+      const lbRound = b.lbRounds[lbRoundIdx];
+      const wbMIdx = parseInt(wbMatch.id.split("-M")[1]);
+      const lbMIdx = Math.floor(wbMIdx / 2);
+      if (lbMIdx < lbRound.length) {
+        const slot = lbRound[lbMIdx].p1 ? "p2" : "p1";
+        b.lbRounds = b.lbRounds.map((r, ri) => ri === lbRoundIdx ? r.map((m, mi) => mi === lbMIdx ? { ...m, [slot]: loser, status: m.p1 && m.p2 ? "PENDING" : "WAITING" } : m) : r);
+      }
+    }
+    return b;
+  }
+
+  function advanceLB(bracket, match, winner, loser) {
+    let b = { ...bracket };
+    const rIdx = match.round - 1;
+    const mIdx = parseInt(match.id.split("-M")[1]);
+
+    // Mark loser as eliminated
+    if (loser) {
+      setOutAnimIds(prev => [...prev, loser]);
+    }
+
+    const nextRIdx = rIdx + 1;
+    if (nextRIdx < b.lbRounds.length) {
+      const nextMIdx = Math.floor(mIdx / 2);
+      const slot = mIdx % 2 === 0 ? "p1" : "p2";
+      b.lbRounds = b.lbRounds.map((r, ri) => ri === nextRIdx ? r.map((m2, mi) => mi === nextMIdx ? { ...m2, [slot]: winner, status: m2.p1 && m2.p2 ? "PENDING" : "WAITING" } : m2) : r);
+    } else {
+      // LB finalist goes to Grand Final as p2
+      b.grandFinal = { ...b.grandFinal, p2: winner, status: b.grandFinal.p1 ? "PENDING" : "WAITING" };
+    }
+    return b;
+  }
+
+  const isAdmin = state.role === "ADMIN";
 
   // ============================================================
-  // RENDER: LOGIN SCREEN
+  // RENDER HELPERS
   // ============================================================
-  if (!role) {
+  const PlayerCard = ({ player, showDice = false, usedLanes = [], isThreePlayer = false, onDice, matchId }) => {
+    const isOut = outAnimIds.includes(player.id);
     return (
-      <>
-        <div className="login-screen">
-          <div className="login-logo">
-            🏎️ MINI 4WD<br/>TOURNAMENT
+      <div className={`relative flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${isOut ? "border-red-700 bg-red-900/20" : "border-gray-700 bg-gray-900/60"}`}>
+        {player.jackpotNum !== null && (
+          <span className="text-xs font-black px-1 py-0 rounded" style={{ background: "#f5c518", color: "#000" }}>#{String(player.jackpotNum).padStart(2, "0")}</span>
+        )}
+        <span className="text-sm font-bold text-white truncate max-w-[100px]">{player.name}</span>
+        {showDice && onDice && (
+          <Dice size="sm" usedLanes={usedLanes} isThreePlayer={isThreePlayer}
+            onResult={(lane) => onDice(matchId, player.id, lane)}
+            disabled={!isAdmin && state.role === "GUEST"} />
+        )}
+        {isOut && <span className="absolute -top-1 -right-1 text-xs font-black px-1 rounded bg-red-600 text-white out-stamp">OUT</span>}
+      </div>
+    );
+  };
+
+  // ---- BRACKET RENDER ----
+  const MatchBox = ({ match, compact = false }) => {
+    if (!match) return null;
+    const p1 = match.p1 ? getPlayerById(match.p1) : null;
+    const p2 = match.p2 ? getPlayerById(match.p2) : null;
+    const isActive = match.status === "PENDING" || match.status === "DICE";
+    const isDone = match.status === "DONE";
+    const isActiveEdit = activeScoreMatch === match.id;
+
+    return (
+      <div className={`rounded-lg border transition-all mb-1 ${isActive ? "border-yellow-400 match-glow" : isDone ? "border-green-700" : "border-gray-700"}`}
+        style={{ minWidth: compact ? 120 : 160, background: "#0d0d1a", padding: compact ? "4px 8px" : "6px 10px" }}>
+        <div className="text-xs font-bold mb-1" style={{ color: match.bracket === "WB" ? "#3b82f6" : match.bracket === "LB" ? "#a855f7" : "#f97316" }}>
+          {match.bracket}-R{match.round || "GF"}{match.isReset ? "(RESET)" : ""}
+        </div>
+        <div className="flex items-center justify-between gap-1 mb-0.5">
+          <span className="text-xs text-white truncate" style={{ maxWidth: 80 }}>
+            {p1 ? `${p1.jackpotNum !== null ? "#" + String(p1.jackpotNum).padStart(2, "0") + " " : ""}${p1.name}` : "TBD"}
+          </span>
+          {isDone && <span className={`text-xs font-black ${match.winner === match.p1 ? "text-yellow-400" : "text-gray-500"}`}>{match.score1 ?? "-"}</span>}
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-xs text-white truncate" style={{ maxWidth: 80 }}>
+            {p2 ? `${p2.jackpotNum !== null ? "#" + String(p2.jackpotNum).padStart(2, "0") + " " : ""}${p2.name}` : "TBD"}
+          </span>
+          {isDone && <span className={`text-xs font-black ${match.winner === match.p2 ? "text-yellow-400" : "text-gray-500"}`}>{match.score2 ?? "-"}</span>}
+        </div>
+        {isActive && isAdmin && (
+          <button onClick={() => handleBracketMatchAction(match)} className="mt-1 w-full text-xs py-0.5 rounded font-bold"
+            style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
+            {isActiveEdit ? "ĐANG NHẬP..." : "NHẬP KẾT QUẢ"}
+          </button>
+        )}
+        {isActiveEdit && (
+          <div className="mt-2 space-y-1">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400 w-12 truncate">{p1?.name || "P1"}</span>
+              <input type="number" min={0} max={3} className="w-10 text-center text-xs rounded bg-gray-800 border border-gray-600 text-white"
+                value={scoreInputs[match.p1] ?? ""} onChange={e => setScoreInputs(s => ({ ...s, [match.p1]: e.target.value }))} />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400 w-12 truncate">{p2?.name || "P2"}</span>
+              <input type="number" min={0} max={3} className="w-10 text-center text-xs rounded bg-gray-800 border border-gray-600 text-white"
+                value={scoreInputs[match.p2] ?? ""} onChange={e => setScoreInputs(s => ({ ...s, [match.p2]: e.target.value }))} />
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => submitBracketScores(match)} className="flex-1 text-xs py-0.5 rounded font-bold"
+                style={{ background: "#22c55e", color: "#000" }}>XÁC NHẬN</button>
+              <button onClick={() => setActiveScoreMatch(null)} className="flex-1 text-xs py-0.5 rounded font-bold bg-gray-700 text-white">HỦY</button>
+            </div>
           </div>
-          <div className="login-subtitle">TAMIYA RACING MANAGEMENT SYSTEM</div>
+        )}
+      </div>
+    );
+  };
 
-          <div className="login-card">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-              {/* Guest */}
-              <div style={{
-                background: 'var(--bg3)', border: '1px solid var(--border)',
-                borderRadius: 12, padding: 20, cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--cyan)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                  <span style={{ fontSize: '2.5rem' }}>👤</span>
-                  <div className="orbitron" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cyan)', marginTop: 8 }}>GUEST</div>
-                  <div className="text-dim text-xs" style={{ marginTop: 4 }}>Xem & xóc xúc xắc</div>
-                </div>
-                <input
-                  className="input"
-                  placeholder="Tên của bạn..."
-                  value={playerName}
-                  onChange={e => setPlayerName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && loginGuest()}
-                  style={{ marginBottom: 10, fontSize: '0.9rem' }}
-                />
-                <button className="btn btn-cyan w-full" onClick={loginGuest}>
-                  VÀO XEM
-                </button>
-              </div>
+  // ============================================================
+  // PHASE RENDERS
+  // ============================================================
 
-              {/* Admin */}
-              <div style={{
-                background: 'var(--bg3)', border: '1px solid var(--border)',
-                borderRadius: 12, padding: 20,
-                transition: 'all 0.2s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                  <span style={{ fontSize: '2.5rem' }}>👑</span>
-                  <div className="orbitron" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--gold)', marginTop: 8 }}>ADMIN</div>
-                  <div className="text-dim text-xs" style={{ marginTop: 4 }}>Toàn quyền điều hành</div>
-                </div>
-                <div className={passError ? '' : ''} style={{ animation: passError ? 'shake 0.4s ease' : 'none' }}>
-                  <input
-                    className="input"
-                    type="password"
-                    placeholder="Mật khẩu..."
-                    value={adminPass}
-                    onChange={e => setAdminPass(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && loginAdmin()}
-                    style={{ marginBottom: 10, fontSize: '0.9rem', borderColor: passError ? 'var(--red)' : undefined }}
-                  />
-                </div>
-                <button className="btn btn-gold w-full" onClick={loginAdmin}>
-                  ĐĂNG NHẬP
-                </button>
-              </div>
+  // === LANDING ===
+  if (state.phase === PHASES.LANDING) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(4px)} }
+          @keyframes slot-spin { 0%{filter:blur(4px);transform:scaleY(1.1)} 100%{filter:blur(0);transform:scaleY(1)} }
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
+          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
+          @keyframes fly-in { 0%{transform:translateX(-100px);opacity:0} 100%{transform:translateX(0);opacity:1} }
+          @keyframes champion-reveal { 0%{transform:scale(0) rotate(-180deg);opacity:0} 60%{transform:scale(1.2) rotate(5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+          .shake{animation:shake 0.5s ease}
+          .slot-spin{animation:slot-spin 0.1s ease infinite}
+          .match-glow{animation:glow-pulse 2s infinite}
+          .out-stamp{animation:out-stamp 0.5s ease forwards}
+          .champion-anim{animation:champion-reveal 1s ease forwards}
+        `}</style>
+        <div className="mb-8 text-center">
+          <div className="text-5xl font-black mb-2" style={{ color: "#f5c518", textShadow: "0 0 20px #f5c518", letterSpacing: 4 }}>
+            🏎 UnELAB
+          </div>
+          <div className="text-xl font-bold text-white tracking-widest">MINI 4WD TOURNAMENT</div>
+          <div className="text-sm text-gray-500 mt-1">HỆ THỐNG QUẢN LÝ GIẢI ĐẤU</div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl">
+          {/* Admin */}
+          <div className="flex-1 rounded-xl border p-6" style={{ borderColor: "#f5c518", background: "#0d0d1a" }}>
+            <div className="text-center mb-4">
+              <span className="text-2xl">👑</span>
+              <div className="text-lg font-black text-yellow-400 tracking-widest">ADMIN</div>
             </div>
+            <input type="password" placeholder="Mật khẩu..." value={adminPass} onChange={e => { setAdminPass(e.target.value); setPassError(false); }}
+              onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
+              className={`w-full px-3 py-2 rounded bg-gray-900 border text-white text-center mb-2 ${passError ? "border-red-500 shake" : "border-gray-600"} ${shakePass ? "shake" : ""}`}
+              style={{ fontFamily: "monospace" }} />
+            {passError && <div className="text-red-400 text-xs text-center mb-2">❌ Sai mật khẩu!</div>}
+            <button onClick={handleAdminLogin} className="w-full py-2 rounded font-black tracking-widest transition-all hover:scale-105"
+              style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
+              ĐĂNG NHẬP
+            </button>
+          </div>
 
-            <div className="text-center text-dim text-xs" style={{ fontFamily: 'Share Tech Mono' }}>
-              v2.0 · SGMS MINI 4WD CLUB
+          {/* Guest */}
+          <div className="flex-1 rounded-xl border p-6" style={{ borderColor: "#e63946", background: "#0d0d1a" }}>
+            <div className="text-center mb-4">
+              <span className="text-2xl">🎮</span>
+              <div className="text-lg font-black tracking-widest" style={{ color: "#e63946" }}>KHÁN GIẢ / THÍ SINH</div>
             </div>
+            <input placeholder="Mã phòng (Room Code)..." value={guestRoom} onChange={e => setGuestRoom(e.target.value.toUpperCase())}
+              className="w-full px-3 py-2 rounded bg-gray-900 border border-gray-600 text-white text-center mb-2 uppercase"
+              style={{ fontFamily: "monospace", letterSpacing: 4 }} />
+            <button onClick={handleGuestJoin} className="w-full py-2 rounded font-black tracking-widest transition-all hover:scale-105"
+              style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
+              VÀO PHÒNG
+            </button>
           </div>
         </div>
-        <ToastContainer toasts={toasts} />
-      </>
+      </div>
     );
   }
 
-  // ============================================================
-  // RENDER: MAIN APP
-  // ============================================================
-  return (
-    <>
-      {/* HEADER */}
-      <div className="app-header">
-        <div className="header-logo">🏎️ M4WD</div>
-        {tournament && (
-          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
-            {tournament.name}
+  // === LOBBY ===
+  if (state.phase === PHASES.LOBBY) {
+    return (
+      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(4px)} }
+          @keyframes slot-spin { 0%{filter:blur(4px);transform:scaleY(1.1)} 100%{filter:blur(0);transform:scaleY(1)} }
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
+          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
+          .match-glow{animation:glow-pulse 2s infinite}
+          .out-stamp{animation:out-stamp 0.5s ease forwards}
+        `}</style>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="text-2xl font-black" style={{ color: "#f5c518" }}>🏎 UnELAB</div>
+            <div className="text-xs text-gray-500">MINI 4WD TOURNAMENT</div>
           </div>
-        )}
-        <div style={{ flex: 1 }} />
-        <span className={`header-badge ${role}`}>
-          {role === 'admin' ? '👑 ADMIN' : `👤 ${playerName}`}
-        </span>
-        <button className="btn btn-outline btn-sm" onClick={() => {
-          setRole(null); setTournament(null); setShowNewTournament(false);
-          setSeedingPairs([]); setSeedingPlayers([]);
-          setFormName(''); setFormPlayers([]); setFormLocked(false);
-        }}>
-          Thoát
-        </button>
-      </div>
-
-      <div className="app-container" style={{ padding: '16px 12px' }}>
-        {/* NO TOURNAMENT */}
-        {!tournament && !showNewTournament && (
-          <div style={{ maxWidth: 480, margin: '60px auto', textAlign: 'center' }}>
-            <div style={{ fontSize: '4rem', marginBottom: 16 }}>🏆</div>
-            <div className="orbitron" style={{ fontSize: '1.4rem', color: 'var(--gold)', marginBottom: 8 }}>
-              CHƯA CÓ GIẢI ĐẤU
-            </div>
-            <div className="text-dim" style={{ marginBottom: 32 }}>
-              {isAdmin ? 'Tạo giải đấu mới để bắt đầu' : 'Chờ Admin tạo giải đấu'}
-            </div>
-            {isAdmin && (
-              <button className="btn btn-gold btn-lg" onClick={() => setShowNewTournament(true)}>
-                + TẠO GIẢI ĐẤU MỚI
-              </button>
-            )}
+          <div className="text-center">
+            <div className="text-xs text-gray-500">MÃ PHÒNG</div>
+            <div className="text-2xl font-black tracking-widest" style={{ color: "#e63946", textShadow: "0 0 10px #e63946" }}>{state.roomCode}</div>
           </div>
-        )}
+          <div>
+            <div className={`text-xs px-2 py-1 rounded font-bold ${isAdmin ? "text-yellow-400 border border-yellow-400" : "text-red-400 border border-red-400"}`}>
+              {isAdmin ? "👑 ADMIN" : "🎮 GUEST"}
+            </div>
+            <button onClick={() => dispatch({ type: "RESET" })} className="text-xs text-gray-600 hover:text-gray-400 mt-1 block">← Thoát</button>
+          </div>
+        </div>
 
-        {/* NEW TOURNAMENT FORM */}
-        {showNewTournament && !tournament && (
-          <div style={{ maxWidth: 600, margin: '0 auto' }}>
-            <div className="card mb-4">
-              <div className="card-title">🏆 TẠO GIẢI ĐẤU MỚI</div>
-
-              <div className="mb-3">
-                <label className="text-xs text-dim mono" style={{ display: 'block', marginBottom: 6, letterSpacing: 2 }}>TÊN GIẢI ĐẤU</label>
-                <input className="input" placeholder="VD: SGMS RACE SEASON 5..." value={formName}
-                  onChange={e => setFormName(e.target.value)} disabled={formLocked} />
+        <div className="max-w-2xl mx-auto space-y-4">
+          {/* Guest register */}
+          {!isAdmin && !state.listLocked && (
+            <div className="rounded-xl border border-blue-700 p-4" style={{ background: "#0d0d1a" }}>
+              <div className="text-sm font-bold text-blue-400 mb-2">🎯 ĐĂNG KÝ THI ĐẤU</div>
+              <div className="flex gap-2">
+                <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Tên của bạn..."
+                  className="flex-1 px-3 py-2 rounded bg-gray-900 border border-gray-600 text-white text-sm" />
+                <button onClick={handleGuestRegister} className="px-4 py-2 rounded font-bold text-sm" style={{ background: "#3b82f6", color: "#fff" }}>ĐĂNG KÝ</button>
               </div>
+            </div>
+          )}
 
-              {/* Player count badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <span className="text-dim text-sm">{formPlayers.length} người chơi</span>
-                {formPlayers.length >= 8 && (
-                  <span className="badge badge-gold">
-                    {needsQualifier(formPlayers.length)
-                      ? `Vòng loại → Top ${getBracketTarget(formPlayers.length)}`
-                      : `DE ${getBracketTarget(formPlayers.length)} người`}
-                  </span>
-                )}
-                {formPlayers.length < 8 && formPlayers.length > 0 && (
-                  <span className="badge badge-red">Cần ít nhất 8</span>
-                )}
-              </div>
-
-              {/* Add player */}
-              {!formLocked && (
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  <input
-                    className="input"
-                    placeholder="Tên người chơi..."
-                    value={newPlayerInput}
-                    onChange={e => setNewPlayerInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && addPlayer()}
-                    style={{ flex: 1 }}
-                  />
-                  <button className="btn btn-gold" onClick={addPlayer}>+ Thêm</button>
-                </div>
-              )}
-
-              {/* Player list */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16, maxHeight: 240, overflowY: 'auto' }}>
-                {formPlayers.map((p, i) => (
-                  <div key={p.id} className="player-row">
-                    <span className="mono text-dim" style={{ minWidth: 24 }}>#{i + 1}</span>
-                    <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
-                    {!formLocked && (
-                      <button className="btn btn-red btn-sm" onClick={() => removePlayer(p.id)}>✕</button>
-                    )}
-                  </div>
-                ))}
-                {formPlayers.length === 0 && (
-                  <div className="text-center text-dim text-sm" style={{ padding: 20 }}>Chưa có người chơi</div>
-                )}
-              </div>
-
-              {/* Qualifier rounds setting */}
-              {formLocked && needsQualifier(formPlayers.length) && (
-                <div style={{ background: 'var(--bg3)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-                  <div className="text-sm font-bold mb-2">Số vòng loại:</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <button className="btn btn-outline btn-sm" onClick={() => setQualifierRounds(r => Math.max(1, r - 1))}>-</button>
-                    <span className="orbitron text-gold" style={{ fontSize: '1.5rem', fontWeight: 900, minWidth: 40, textAlign: 'center' }}>
-                      {qualifierRounds}
-                    </span>
-                    <button className="btn btn-outline btn-sm" onClick={() => setQualifierRounds(r => Math.min(10, r + 1))}>+</button>
-                    <span className="text-dim text-sm">vòng</span>
+          {/* Player list */}
+          <div className="rounded-xl border border-gray-700 p-4" style={{ background: "#0d0d1a" }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-bold text-white">👥 DANH SÁCH ({state.players.length} người)</div>
+              {isAdmin && !state.listLocked && (
+                <div className="flex gap-2">
+                  <div className="flex gap-1">
+                    <input value={newPlayerName} onChange={e => setNewPlayerName(e.target.value)} placeholder="Thêm thí sinh..."
+                      onKeyDown={e => e.key === "Enter" && newPlayerName.trim() && (dispatch({ type: "ADD_PLAYER", payload: newPlayerName.trim() }), setNewPlayerName(""))}
+                      className="px-2 py-1 rounded text-xs bg-gray-800 border border-gray-600 text-white" />
+                    <button onClick={() => { if (newPlayerName.trim()) { dispatch({ type: "ADD_PLAYER", payload: newPlayerName.trim() }); setNewPlayerName(""); } }}
+                      className="px-2 py-1 rounded text-xs font-bold" style={{ background: "#f5c518", color: "#000" }}>+</button>
                   </div>
                 </div>
               )}
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button className="btn btn-outline" onClick={() => setShowNewTournament(false)}>Hủy</button>
-                {!formLocked ? (
-                  <button className="btn btn-red" style={{ flex: 1 }} onClick={lockPlayers}
-                    disabled={formPlayers.length < 8}>
-                    🔒 KHÓA DANH SÁCH
-                  </button>
-                ) : (
-                  <button className="btn btn-gold" style={{ flex: 1 }} onClick={createTournament}>
-                    ✅ TẠO GIẢI ĐẤU
-                  </button>
-                )}
-              </div>
             </div>
-          </div>
-        )}
-
-        {/* TOURNAMENT ACTIVE */}
-        {tournament && (
-          <>
-            <PhaseIndicator phase={tournament.phase} />
-
-            {/* TABS */}
-            <div className="tab-bar">
-              <button className={`tab ${activeTab === 'players' ? 'active' : ''}`} onClick={() => setActiveTab('players')}>👥 Người Chơi</button>
-              {(tournament.phase === 'qualifier') && (
-                <button className={`tab ${activeTab === 'qualifier' ? 'active' : ''}`} onClick={() => setActiveTab('qualifier')}>⚔️ Vòng Loại</button>
-              )}
-              {(tournament.phase === 'bracketSeed') && (
-                <button className={`tab ${activeTab === 'seed' ? 'active' : ''}`} onClick={() => setActiveTab('seed')}>🎰 Xếp Cặp</button>
-              )}
-              {(tournament.phase === 'bracket' || tournament.phase === 'complete') && (
-                <button className={`tab ${activeTab === 'bracket' ? 'active' : ''}`} onClick={() => setActiveTab('bracket')}>🏆 Bảng Đấu</button>
-              )}
-              <button className={`tab ${activeTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setActiveTab('leaderboard')}>📊 Bảng Điểm</button>
-            </div>
-
-            {/* ---- TAB: PLAYERS / JACKPOT ---- */}
-            {activeTab === 'players' && (
-              <div>
-                <div className="card mb-4">
-                  <div className="card-title">🎰 QUAY SỐ MAY MẮN</div>
-                  <div className="text-dim text-sm mb-4">
-                    Mỗi người chơi quay 1 lần để nhận số hiệu ngẫu nhiên. Số này sẽ theo suốt giải đấu.
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {tournament.players.map(p => (
-                      <div key={p.id} style={{
-                        background: 'var(--bg3)', borderRadius: 10, padding: '12px 16px',
-                        border: p.jackpotNumber ? '1px solid var(--gold)30' : '1px solid var(--border)',
-                        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap'
-                      }}>
-                        <span style={{ fontWeight: 700, minWidth: 120 }}>{p.name}</span>
-                        {p.jackpotNumber ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div className="jackpot-result" style={{ fontSize: '1.4rem' }}>{p.jackpotNumber}</div>
-                            <span className="badge badge-gold">ĐÃ QUAY</span>
-                          </div>
-                        ) : (
-                          (isAdmin || currentPlayer?.id === p.id) ? (
-                            <JackpotReel
-                              onResult={num => assignJackpotNumber(p.id, num)}
-                              disabled={p.jackpotNumber !== null}
-                              existingNumbers={existingNumbers}
-                              label={isAdmin && currentPlayer?.id !== p.id ? `Quay cho ${p.name}` : 'Của bạn'}
-                            />
-                          ) : (
-                            <span className="text-dim text-sm mono">🔒 Chờ quay...</span>
-                          )
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {isAdmin && (
-                    <div style={{ marginTop: 20 }}>
-                      <div className="progress-bar mb-2">
-                        <div className="progress-fill" style={{
-                          width: `${(tournament.players.filter(p => p.jackpotNumber).length / tournament.players.length) * 100}%`
-                        }} />
-                      </div>
-                      <div className="text-sm text-dim mb-3">
-                        {tournament.players.filter(p => p.jackpotNumber).length} / {tournament.players.length} đã quay
-                      </div>
-                      <button className="btn btn-gold w-full btn-lg"
-                        onClick={proceedFromJackpot}
-                        disabled={!allJackpotsAssigned}>
-                        {allJackpotsAssigned ? '✅ TIẾP TỤC →' : `Chờ ${tournament.players.filter(p => !p.jackpotNumber).length} người quay số...`}
-                      </button>
+            <div className="space-y-1 max-h-64 overflow-y-auto">
+              {state.players.map((p, i) => (
+                <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded border border-gray-800">
+                  <span className="text-gray-500 text-xs w-5">{i + 1}.</span>
+                  {editingId === p.id ? (
+                    <input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 text-sm bg-gray-800 border border-yellow-400 rounded px-1 text-white" autoFocus
+                      onKeyDown={e => { if (e.key === "Enter") { dispatch({ type: "UPDATE_PLAYER_NAME", id: p.id, name: editName }); setEditingId(null); } }} />
+                  ) : (
+                    <span className="flex-1 text-sm text-white">{p.name}</span>
+                  )}
+                  {isAdmin && !state.listLocked && (
+                    <div className="flex gap-1">
+                      <button onClick={() => { setEditingId(p.id); setEditName(p.name); }} className="text-xs text-yellow-500 hover:text-yellow-300">✏️</button>
+                      <button onClick={() => dispatch({ type: "REMOVE_PLAYER", id: p.id })} className="text-xs text-red-500 hover:text-red-300">🗑️</button>
                     </div>
                   )}
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+          </div>
 
-            {/* ---- TAB: QUALIFIER ---- */}
-            {activeTab === 'qualifier' && tournament.phase === 'qualifier' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <div className="orbitron text-gold" style={{ fontSize: '1rem' }}>
-                    VÒNG LOẠI {tournament.currentQualifierRound} / {tournament.qualifierRounds}
-                  </div>
-                  <div className="badge badge-gold">{tournament.bracketTarget} suất vào bảng chính</div>
+          {/* Admin controls */}
+          {isAdmin && (
+            <div className="space-y-2">
+              {!state.listLocked ? (
+                <button onClick={() => { if (state.players.length >= 8) dispatch({ type: "LOCK_LIST" }); }}
+                  disabled={state.players.length < 8}
+                  className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105 disabled:opacity-40"
+                  style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
+                  🔒 KHÓA DANH SÁCH ({state.players.length} người)
+                </button>
+              ) : (
+                <button onClick={() => dispatch({ type: "SET_PHASE", payload: PHASES.JACKPOT })}
+                  className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105"
+                  style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
+                  🎰 BẮT ĐẦU QUAY SỐ MAY MẮN →
+                </button>
+              )}
+            </div>
+          )}
+          {!isAdmin && state.listLocked && (
+            <div className="text-center text-yellow-400 font-bold text-sm animate-pulse">⏳ Đang chờ Admin bắt đầu giải đấu...</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // === JACKPOT ===
+  if (state.phase === PHASES.JACKPOT) {
+    const usedNums = state.players.map(p => p.jackpotNum).filter(n => n !== null);
+    return (
+      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes slot-spin { 0%{filter:blur(4px)} 100%{filter:blur(0)} }
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
+          .slot-spin{animation:slot-spin 0.1s ease infinite}
+          .match-glow{animation:glow-pulse 2s infinite}
+        `}</style>
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => dispatch({ type: "SET_PHASE", payload: PHASES.LOBBY })} className="text-gray-500 text-sm hover:text-gray-300">← Quay lại</button>
+          <div className="text-lg font-black text-yellow-400">🎰 QUAY SỐ MAY MẮN</div>
+          <div className="text-xs text-gray-500">{state.players.filter(p => p.jackpotNum !== null).length}/{state.players.length}</div>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-3">
+          {state.players.map(p => (
+            <div key={p.id} className={`rounded-xl border p-4 transition-all ${p.jackpotNum !== null ? "border-green-700" : spinningFor === p.id ? "border-yellow-400 match-glow" : "border-gray-700"}`}
+              style={{ background: "#0d0d1a" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-white">{p.name}</div>
+                  {p.jackpotNum !== null && (
+                    <div className="text-xl font-black text-green-400 mt-1">#{String(p.jackpotNum).padStart(2, "0")}</div>
+                  )}
                 </div>
+                {p.jackpotNum === null && spinningFor === p.id ? (
+                  <SlotMachine onResult={(num) => handleJackpotResult(p.id, num)} usedNumbers={usedNums} autoSpin />
+                ) : p.jackpotNum === null ? (
+                  (isAdmin || true) && (
+                    <button onClick={() => setSpinningFor(p.id)}
+                      className="px-4 py-2 rounded font-bold text-sm transition-all hover:scale-105"
+                      style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
+                      🎰 QUAY SỐ
+                    </button>
+                  )
+                ) : (
+                  <div className="text-green-400 text-2xl">✅</div>
+                )}
+              </div>
+            </div>
+          ))}
 
-                {tournament.qualifierData.map((roundData, roundIdx) => (
-                  <div key={roundIdx} className="card mb-4">
-                    <div className="card-title">⚔️ VÒNG LOẠI {roundData.round}</div>
-                    {roundData.groups.map((group, groupIdx) => {
-                      const allDiceRolled = group.players.every(p => group.lanes[p.id] !== undefined);
-                      const allScored = group.players.every(p => group.scores[p.id] !== undefined);
+          {allJackpotsAssigned && isAdmin && (
+            <button onClick={() => {
+              const bs = getBracketSize(state.players.length);
+              if (bs?.direct) {
+                dispatch({ type: "SET_PHASE", payload: PHASES.SEEDING });
+              } else {
+                dispatch({ type: "INIT_QUALIFIER_ROUND" });
+                dispatch({ type: "SET_PHASE", payload: PHASES.QUALIFIER });
+              }
+            }} className="w-full py-3 rounded-lg font-black tracking-widest mt-4 transition-all hover:scale-105"
+              style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
+              {getBracketSize(state.players.length)?.direct ? "🏆 BẮT ĐẦU XẾP CẶP →" : "⚡ BẮT ĐẦU VÒNG LOẠI →"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
-                      return (
-                        <div key={groupIdx} style={{
-                          background: 'var(--bg3)', borderRadius: 10, padding: 14,
-                          marginBottom: 12, border: group.complete ? '1px solid var(--green)30' : '1px solid var(--border)'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                            <span className="mono text-dim text-xs">VÁN {groupIdx + 1}</span>
-                            {group.complete && <span className="badge badge-green">XONG</span>}
+  // === QUALIFIER ===
+  if (state.phase === PHASES.QUALIFIER) {
+    const roundMatches = getCurrentRoundMatches();
+    const allRoundDone = roundMatches.every(m => m.status === "DONE");
+    return (
+      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
+          .out-stamp{animation:out-stamp 0.5s ease forwards}
+          .match-glow{animation:glow-pulse 2s infinite}
+        `}</style>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="text-lg font-black text-yellow-400">⚡ VÒNG LOẠI</div>
+            <div className="text-xs text-gray-500">VÒNG {state.currentQualRound}/{state.qualifierRounds}</div>
+          </div>
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400">SỐ VÒNG:</span>
+              <button onClick={() => dispatch({ type: "SET_QUALIFIER_ROUNDS", payload: Math.max(1, state.qualifierRounds - 1) })} className="w-6 h-6 rounded bg-gray-700 text-white text-sm">-</button>
+              <span className="text-sm font-bold text-white w-4 text-center">{state.qualifierRounds}</span>
+              <button onClick={() => dispatch({ type: "SET_QUALIFIER_ROUNDS", payload: Math.min(10, state.qualifierRounds + 1) })} className="w-6 h-6 rounded bg-gray-700 text-white text-sm">+</button>
+            </div>
+          )}
+        </div>
+
+        {/* Rankings */}
+        <div className="max-w-4xl mx-auto mb-4 p-3 rounded-xl border border-gray-700" style={{ background: "#0d0d1a" }}>
+          <div className="text-xs font-bold text-gray-400 mb-2">BẢNG XẾP HẠNG TẠM THỜI</div>
+          <div className="flex flex-wrap gap-2">
+            {[...state.players].sort((a, b) => b.totalScore - a.totalScore).map((p, i) => (
+              <div key={p.id} className={`flex items-center gap-1 px-2 py-1 rounded text-xs border ${outAnimIds.includes(p.id) ? "border-red-700 bg-red-900/20" : i < (getBracketSize(state.players.length)?.size || 8) ? "border-green-700 bg-green-900/10" : "border-gray-700"}`}>
+                <span className="text-gray-500">{i + 1}.</span>
+                <span className="font-bold text-white">{p.name}</span>
+                <span className="font-black text-yellow-400">{p.totalScore}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-4">
+          {roundMatches.map(match => {
+            const allDice = match.players.every(p => p.lane !== null);
+            const allScores = match.players.every(p => p.score !== null);
+            return (
+              <div key={match.id} className={`rounded-xl border p-4 transition-all ${match.status === "DONE" ? "border-green-700" : match.status === "SCORE" ? "border-blue-500" : "border-yellow-500 match-glow"}`}
+                style={{ background: "#0d0d1a" }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs font-bold text-yellow-400">TRẬN {match.id} ({match.size} NGƯỜI)</div>
+                  {match.status === "DONE" && <span className="text-xs font-bold text-green-400">✅ XONG</span>}
+                </div>
+                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${match.size}, 1fr)` }}>
+                  {match.players.map(mp => {
+                    const p = getPlayerById(mp.id);
+                    const usedLanes = match.players.filter(x => x.lane !== null && x.id !== mp.id).map(x => x.lane);
+                    return (
+                      <div key={mp.id} className="flex flex-col items-center gap-2 p-2 rounded-lg border border-gray-700">
+                        <div className="text-xs font-bold text-white text-center">{p?.name}</div>
+                        {p?.jackpotNum !== null && <div className="text-xs px-1 rounded" style={{ background: "#f5c518", color: "#000" }}>#{String(p?.jackpotNum).padStart(2, "0")}</div>}
+                        {mp.lane !== null ? (
+                          <div className="text-xs font-bold text-green-400">LÀN {mp.lane}</div>
+                        ) : (
+                          <Dice size="sm" usedLanes={usedLanes} isThreePlayer={match.size === 3}
+                            onResult={(lane) => handleQualDice(match.id, mp.id, lane)}
+                            disabled={!isAdmin} />
+                        )}
+                        {match.status === "SCORE" || match.status === "DONE" ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="text-xs text-gray-400">Điểm</div>
+                            {match.status === "SCORE" && isAdmin && mp.score === null ? (
+                              <input type="number" min={0} max={3} className="w-12 text-center text-sm rounded bg-gray-800 border border-yellow-400 text-white"
+                                onChange={e => handleQualScore(match.id, mp.id, parseInt(e.target.value))} placeholder="0-3" />
+                            ) : (
+                              <div className={`text-lg font-black ${mp.score !== null ? "text-yellow-400" : "text-gray-600"}`}>{mp.score ?? "-"}</div>
+                            )}
                           </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+                {isAdmin && match.status !== "DONE" && (
+                  <div className="mt-3 flex gap-2">
+                    {allDice && match.status === "DICE" && (
+                      <button onClick={() => dispatch({ type: "SET_QUAL_MATCH_STATUS", matchId: match.id, status: "SCORE" })}
+                        className="flex-1 py-2 rounded text-xs font-bold" style={{ background: "#3b82f6", color: "#fff" }}>
+                        ✅ XÁC NHẬN LÀN - NHẬP ĐIỂM
+                      </button>
+                    )}
+                    {match.status === "SCORE" && allScores && (
+                      <button onClick={() => dispatch({ type: "SET_QUAL_MATCH_STATUS", matchId: match.id, status: "DONE" })}
+                        className="flex-1 py-2 rounded text-xs font-bold" style={{ background: "#22c55e", color: "#000" }}>
+                        ✅ XÁC NHẬN ĐIỂM
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
-                          {group.players.map(p => {
-                            const canDice = (isAdmin || currentPlayer?.id === p.id) && !group.lanes[p.id] && !group.complete;
-                            const diceLocked = !!group.lanes[p.id];
-                            const allowedVals = group.players.length === 2 ? [1, 3] : [1, 2, 3];
+          {isAdmin && allRoundDone && (
+            <button onClick={handleFinishQualRound} className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105"
+              style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
+              {state.currentQualRound >= state.qualifierRounds ? "🏆 KẾT THÚC VÒNG LOẠI - XẾP HẠNG →" : `➡️ VÒNG ${state.currentQualRound + 1} →`}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
-                            return (
-                              <div key={p.id} style={{
-                                display: 'flex', alignItems: 'center', gap: 12,
-                                padding: '10px 0', borderBottom: '1px solid var(--border)'
-                              }}>
-                                <span className="badge badge-gold">{p.jackpotNumber}</span>
-                                <span style={{ fontWeight: 600, flex: 1, minWidth: 80 }}>{p.name}</span>
+  // === SEEDING ===
+  if (state.phase === PHASES.SEEDING) {
+    const bs = getBracketSize(state.players.length);
+    const totalPairs = (bs?.size || 8) / 2;
+    const allSeeded = state.seedingPairs.length >= totalPairs;
+    const seedPlayers = state.advancedPlayers.length > 0 ? state.advancedPlayers : state.players;
+    const usedInSeeding = state.seedingPairs.flatMap(pair => pair.map(p => p?.jackpotNum)).filter(n => n !== null);
+    const availableNums = seedPlayers.filter(p => !usedInSeeding.includes(p.jackpotNum)).map(p => p.jackpotNum).filter(n => n !== null);
 
-                                <DiceRoller
-                                  allowedValues={allowedVals}
-                                  onResult={v => handleQualifierDice(roundIdx, groupIdx, p.id, v)}
-                                  disabled={!canDice || group.complete}
-                                  locked={diceLocked}
-                                  lockedValue={group.lanes[p.id]}
-                                />
+    return (
+      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes slot-spin { 0%{filter:blur(4px)} 100%{filter:blur(0)} }
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
+          .slot-spin{animation:slot-spin 0.1s ease infinite}
+          .match-glow{animation:glow-pulse 2s infinite}
+        `}</style>
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-lg font-black text-yellow-400">🎰 XẾP CẶP BẢNG ĐẤU</div>
+          <div className="text-sm text-gray-400">{state.seedingPairs.length}/{totalPairs} CẶP</div>
+        </div>
 
-                                {isAdmin && !group.complete && (
-                                  <div style={{ display: 'flex', gap: 4 }}>
-                                    {[0,1,2,3].map(s => (
-                                      <button key={s}
-                                        className={`score-btn ${group.scores[p.id] === s ? 'selected' : ''}`}
-                                        style={{ width: 36, height: 36, fontSize: '0.85rem' }}
-                                        onClick={() => handleQualifierScore(roundIdx, groupIdx, p.id, s)}>
-                                        {s}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
-                                {(group.complete || !isAdmin) && group.scores[p.id] !== undefined && (
-                                  <span className="orbitron text-gold" style={{ fontWeight: 900, fontSize: '1.1rem', minWidth: 32, textAlign: 'right' }}>
-                                    {group.scores[p.id]}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
+        <div className="max-w-3xl mx-auto">
+          {/* Current seeding spinner */}
+          {!allSeeded && isAdmin && (
+            <div className="rounded-xl border border-yellow-500 match-glow p-6 mb-6" style={{ background: "#0d0d1a" }}>
+              <div className="text-center text-sm font-bold text-yellow-400 mb-4">CẶP #{state.seedingPairs.length + 1}</div>
+              <div className="flex justify-center gap-8">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="text-xs text-gray-400">THÍ SINH A</div>
+                  <SlotMachine key={`s1-${state.seedingPairs.length}`} onResult={handleSeedSpin1Result} usedNumbers={usedInSeeding} />
+                  {dualSpin1 !== null && (
+                    <div className="text-sm font-bold text-green-400">{seedPlayers.find(p => p.jackpotNum === dualSpin1)?.name || "?"}</div>
+                  )}
+                </div>
+                <div className="flex items-center text-3xl text-gray-600 font-black">VS</div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="text-xs text-gray-400">THÍ SINH B</div>
+                  {dualSpin1 !== null ? (
+                    <SlotMachine key={`s2-${state.seedingPairs.length}-${dualSpin1}`} onResult={handleSeedSpin2Result} usedNumbers={[...usedInSeeding, dualSpin1]} />
+                  ) : (
+                    <div className="text-gray-600 text-sm text-center">Quay A trước</div>
+                  )}
+                  {dualSpin2 !== null && (
+                    <div className="text-sm font-bold text-green-400">{seedPlayers.find(p => p.jackpotNum === dualSpin2)?.name || "?"}</div>
+                  )}
+                </div>
+              </div>
+              {dualSpinDone && currentSeedPair[0] && currentSeedPair[1] && (
+                <button onClick={confirmSeedPair} className="mt-4 w-full py-2 rounded font-black" style={{ background: "#22c55e", color: "#000" }}>
+                  ✅ XÁC NHẬN CẶP ĐÔI NÀY
+                </button>
+              )}
+            </div>
+          )}
 
-                          {isAdmin && !group.complete && (
-                            <button
-                              className="btn btn-gold btn-sm"
-                              style={{ marginTop: 12 }}
-                              onClick={() => completeQualifierGroup(roundIdx, groupIdx)}
-                              disabled={!allDiceRolled || !allScored}
-                            >
-                              ✅ Xác nhận ván này
-                            </button>
+          {/* Confirmed pairs */}
+          <div className="space-y-2 mb-4">
+            {state.seedingPairs.map((pair, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-2 rounded-lg border border-green-700" style={{ background: "#0d1a0d" }}>
+                <span className="text-xs text-gray-400 w-4">{i + 1}</span>
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-xs px-1 rounded font-black" style={{ background: "#f5c518", color: "#000" }}>#{String(pair[0]?.jackpotNum).padStart(2, "0")}</span>
+                  <span className="text-sm font-bold text-white">{pair[0]?.name}</span>
+                </div>
+                <span className="text-gray-600 font-black">VS</span>
+                <div className="flex items-center gap-2 flex-1 justify-end">
+                  <span className="text-sm font-bold text-white">{pair[1]?.name}</span>
+                  <span className="text-xs px-1 rounded font-black" style={{ background: "#f5c518", color: "#000" }}>#{String(pair[1]?.jackpotNum).padStart(2, "0")}</span>
+                </div>
+                <span className="text-green-400">✅</span>
+              </div>
+            ))}
+          </div>
+
+          {allSeeded && isAdmin && (
+            <button onClick={initBracket} className="w-full py-3 rounded-lg font-black tracking-widest transition-all hover:scale-105"
+              style={{ background: "linear-gradient(135deg,#e63946,#c0392b)", color: "#fff" }}>
+              🏆 XÁC NHẬN BẢNG ĐẤU - BẮT ĐẦU →
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // === BRACKET ===
+  if (state.phase === PHASES.BRACKET) {
+    const { wbRounds, lbRounds, grandFinal, grandFinalReset } = state.bracket || { wbRounds: [], lbRounds: [], grandFinal: null, grandFinalReset: null };
+
+    return (
+      <div className="min-h-screen p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px #f5c518} 50%{box-shadow:0 0 30px #f5c518,0 0 60px #f5c518} }
+          @keyframes out-stamp { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(-5deg)} }
+          .match-glow{animation:glow-pulse 2s infinite}
+          .out-stamp{animation:out-stamp 0.5s ease forwards}
+        `}</style>
+
+        {champAnim && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.9)" }}>
+            <div className="text-center animate-bounce">
+              <div className="text-6xl mb-4">🏆</div>
+              <div className="text-2xl font-black text-yellow-400">VÔ ĐỊCH!</div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-lg font-black text-yellow-400">🏆 BẢNG ĐẤU LOẠI KÉP</div>
+          <div className={`text-xs px-2 py-1 rounded font-bold ${isAdmin ? "text-yellow-400 border border-yellow-400" : "text-red-400 border border-red-400"}`}>
+            {isAdmin ? "👑 ADMIN" : "🎮 GUEST"}
+          </div>
+        </div>
+
+        {/* Score Modal */}
+        {activeScoreMatch && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}>
+            {(() => {
+              const allMatches = [...wbRounds.flat(), ...lbRounds.flat(), grandFinal, grandFinalReset].filter(Boolean);
+              const match = allMatches.find(m => m.id === activeScoreMatch);
+              if (!match) return null;
+              const p1 = match.p1 ? getPlayerById(match.p1) : null;
+              const p2 = match.p2 ? getPlayerById(match.p2) : null;
+              return (
+                <div className="rounded-xl border border-yellow-400 p-6 w-full max-w-sm" style={{ background: "#0d0d1a" }}>
+                  <div className="text-sm font-black text-yellow-400 mb-4 text-center">{match.id} - NHẬP KẾT QUẢ</div>
+
+                  {/* Dice for lanes */}
+                  <div className="flex justify-around mb-4">
+                    {[p1, p2].map((p, pi) => {
+                      if (!p) return null;
+                      const lane = pi === 0 ? match.lane1 : match.lane2;
+                      const usedLanes = [match.lane1, match.lane2].filter(Boolean);
+                      return (
+                        <div key={p.id} className="flex flex-col items-center gap-1">
+                          <div className="text-xs text-white font-bold">{p.name}</div>
+                          {lane ? (
+                            <div className="text-xs text-green-400 font-bold">LÀN {lane}</div>
+                          ) : (
+                            <Dice size="sm" usedLanes={usedLanes.filter((_, i) => i !== pi)} isThreePlayer={false}
+                              onResult={(l) => {
+                                dispatch({ type: "UPDATE_BRACKET_MATCH", matchId: match.id, field: pi === 0 ? "lane1" : "lane2", value: l });
+                              }} disabled={!isAdmin} />
                           )}
                         </div>
                       );
                     })}
-
-                    {/* Advance round button */}
-                    {isAdmin && isQualifierRoundComplete(roundIdx) && roundIdx === tournament.currentQualifierRound - 1 && (
-                      <div style={{ marginTop: 16 }}>
-                        {tournament.currentQualifierRound < tournament.qualifierRounds ? (
-                          <button className="btn btn-gold w-full" onClick={advanceQualifierRound}>
-                            ▶ VÒNG LOẠI {tournament.currentQualifierRound + 1} →
-                          </button>
-                        ) : (
-                          <button className="btn btn-red w-full btn-lg" onClick={finalizeQualifiers}>
-                            🏆 TỔNG KẾT VÒNG LOẠI
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ---- TAB: BRACKET SEEDING ---- */}
-            {activeTab === 'seed' && tournament.phase === 'bracketSeed' && (
-              <div style={{ maxWidth: 640, margin: '0 auto' }}>
-                <div className="card">
-                  <div className="card-title">🎰 XẾP CẶP ĐẤU (JACKPOT)</div>
-                  <div className="text-dim text-sm mb-4">
-                    Admin quay 2 số để tìm cặp đấu. Visible với tất cả người xem.
                   </div>
 
-                  {/* Remaining players */}
-                  {seedingPlayers.length > 0 && (
-                    <div style={{ marginBottom: 20 }}>
-                      <div className="text-xs text-dim mono mb-2">CÒN LẠI ({seedingPlayers.length}):</div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {seedingPlayers.map(p => (
-                          <span key={p.id} className="badge badge-dim">
-                            <span style={{ color: 'var(--gold)' }}>{p.jackpotNumber}</span> {p.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Spin button */}
-                  {isAdmin && seedingPlayers.length >= 2 && (
-                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                      <button
-                        className="btn btn-gold btn-xl"
-                        onClick={spinNextPair}
-                        disabled={spinningPair}
-                        style={{ animation: spinningPair ? 'glow-pulse 0.5s infinite' : 'none' }}
-                      >
-                        {spinningPair ? '🎰 Đang quay...' : '🎰 QUAY CẶP TIẾP THEO'}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Pairs drawn */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {seedingPairs.map(([p1, p2], i) => (
-                      <div key={i} style={{
-                        background: 'var(--bg3)', borderRadius: 10, padding: '10px 14px',
-                        border: '1px solid var(--gold)30',
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        animation: 'slide-in-up 0.3s ease'
-                      }}>
-                        <span className="orbitron text-dim" style={{ fontSize: '0.75rem', minWidth: 20 }}>#{i + 1}</span>
-                        <span className="badge badge-gold">{p1.jackpotNumber}</span>
-                        <span style={{ fontWeight: 700 }}>{p1.name}</span>
-                        <span className="text-dim orbitron" style={{ fontSize: '0.75rem', margin: '0 8px' }}>VS</span>
-                        {p2 ? (
-                          <>
-                            <span className="badge badge-gold">{p2.jackpotNumber}</span>
-                            <span style={{ fontWeight: 700 }}>{p2.name}</span>
-                          </>
-                        ) : (
-                          <span className="badge badge-cyan">BYE</span>
-                        )}
+                  {/* Scores */}
+                  <div className="space-y-2 mb-4">
+                    {[p1, p2].map((p, pi) => (
+                      p && <div key={p.id} className="flex items-center gap-2">
+                        <span className="text-sm text-white flex-1">{p.name}</span>
+                        <div className="flex gap-1">
+                          {[0, 1, 2, 3].map(s => (
+                            <button key={s} onClick={() => setScoreInputs(prev => ({ ...prev, [p.id]: s }))}
+                              className={`w-8 h-8 rounded font-black text-sm transition-all ${scoreInputs[p.id] === s ? "scale-110" : ""}`}
+                              style={{ background: scoreInputs[p.id] === s ? "#f5c518" : "#333", color: scoreInputs[p.id] === s ? "#000" : "#fff" }}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Bye remaining */}
-                  {seedingPlayers.length === 1 && (
-                    <div style={{ marginTop: 10 }}>
-                      <div className="text-dim text-sm mb-2">Còn 1 người, sẽ nhận BYE:</div>
-                      <span className="badge badge-cyan">{seedingPlayers[0].name} → BYE</span>
-                    </div>
-                  )}
-
-                  {/* Confirm */}
-                  {isAdmin && seedingPlayers.length <= 1 && seedingPairs.length > 0 && (
-                    <button className="btn btn-gold w-full btn-lg" style={{ marginTop: 20 }} onClick={confirmBracketSeed}>
-                      ✅ XÁC NHẬN & TẠO BẢNG ĐẤU
+                  <div className="flex gap-2">
+                    <button onClick={() => submitBracketScores(match)} className="flex-1 py-2 rounded font-black" style={{ background: "#22c55e", color: "#000" }}>
+                      ✅ XÁC NHẬN
                     </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ---- TAB: BRACKET ---- */}
-            {activeTab === 'bracket' && (tournament.phase === 'bracket' || tournament.phase === 'complete') && (
-              <div>
-                {tournament.phase === 'complete' && tournament.champion && (
-                  <div style={{
-                    background: 'linear-gradient(135deg, var(--gold)20, var(--gold)05)',
-                    border: '2px solid var(--gold)',
-                    borderRadius: 16, padding: 24, textAlign: 'center', marginBottom: 20,
-                    animation: 'winner-flash 2s ease-in-out infinite',
-                    boxShadow: '0 0 40px var(--gold)30'
-                  }}>
-                    <div style={{ fontSize: '3rem', marginBottom: 8 }}>🏆</div>
-                    <div className="orbitron text-gold" style={{ fontSize: '1.5rem', fontWeight: 900 }}>
-                      VÔ ĐỊCH
-                    </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 700, marginTop: 8 }}>
-                      {tournament.champion.name}
-                    </div>
-                    <div className="mono text-gold" style={{ fontSize: '1.2rem', marginTop: 4 }}>
-                      #{tournament.champion.jackpotNumber}
-                    </div>
-                  </div>
-                )}
-
-                {/* WINNERS BRACKET */}
-                <div className="card mb-4">
-                  <div className="bracket-section-title" style={{ color: 'var(--gold)' }}>
-                    🏆 NHÁNH THẮNG (WINNERS BRACKET)
-                  </div>
-                  <div className="bracket-container">
-                    <div style={{ display: 'flex', gap: 16, minWidth: 'max-content' }}>
-                      {tournament.winnersRounds.map((round, ri) => (
-                        <div key={ri} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          <div className="bracket-round-label">
-                            {ri === tournament.winnersRounds.length - 1 ? 'CHUNG KẾT NHÁNH' : `VÒNG W${ri + 1}`}
-                          </div>
-                          <div style={{
-                            display: 'flex', flexDirection: 'column',
-                            gap: Math.pow(2, ri) * 8,
-                            marginTop: Math.pow(2, ri - 1) * 4
-                          }}>
-                            {round.map((match, mi) => (
-                              <div key={mi} onClick={() => {
-                                if (match.status === 'active' || (match.status === 'complete' && isAdmin)) {
-                                  setSelectedMatch(match);
-                                }
-                              }} style={{ cursor: match.status === 'active' ? 'pointer' : 'default' }}>
-                                <BracketMatchBox
-                                  match={match}
-                                  players={tournament.players}
-                                  isAdmin={isAdmin}
-                                  currentPlayerId={currentPlayer?.id}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <button onClick={() => setActiveScoreMatch(null)} className="flex-1 py-2 rounded font-black bg-gray-700 text-white">HỦY</button>
                   </div>
                 </div>
-
-                {/* LOSERS BRACKET */}
-                {tournament.losersRounds.length > 0 && (
-                  <div className="card mb-4">
-                    <div className="bracket-section-title" style={{ color: 'var(--red)' }}>
-                      💀 NHÁNH THUA (LOSERS BRACKET)
-                    </div>
-                    <div className="bracket-container">
-                      <div style={{ display: 'flex', gap: 16, minWidth: 'max-content' }}>
-                        {tournament.losersRounds.map((round, ri) => (
-                          <div key={ri} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <div className="bracket-round-label" style={{ color: 'var(--red)' }}>VÒNG L{ri + 1}</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              {round.map((match, mi) => (
-                                <div key={mi} onClick={() => {
-                                  if (match.status === 'active' || (isAdmin && match.status === 'complete')) {
-                                    setSelectedMatch(match);
-                                  }
-                                }} style={{ cursor: match.status === 'active' ? 'pointer' : 'default' }}>
-                                  <BracketMatchBox
-                                    match={match}
-                                    players={tournament.players}
-                                    isAdmin={isAdmin}
-                                    currentPlayerId={currentPlayer?.id}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* GRAND FINAL */}
-                {tournament.grandFinal && (
-                  <div className="card">
-                    <div className="bracket-section-title" style={{ color: 'var(--gold)', fontSize: '1rem' }}>
-                      👑 GRAND FINAL
-                    </div>
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                      <div onClick={() => {
-                        if (tournament.grandFinal.status === 'active') setSelectedMatch(tournament.grandFinal);
-                      }} style={{ cursor: tournament.grandFinal.status === 'active' ? 'pointer' : 'default' }}>
-                        <div className="text-xs text-dim mono mb-2" style={{ letterSpacing: 2 }}>TRẬN CHÍNH</div>
-                        <BracketMatchBox
-                          match={tournament.grandFinal}
-                          players={tournament.players}
-                          isAdmin={isAdmin}
-                          currentPlayerId={currentPlayer?.id}
-                        />
-                      </div>
-                      {tournament.grandFinalReset && (
-                        <div onClick={() => {
-                          if (tournament.grandFinalReset.status === 'active') setSelectedMatch(tournament.grandFinalReset);
-                        }} style={{ cursor: tournament.grandFinalReset.status === 'active' ? 'pointer' : 'default' }}>
-                          <div className="text-xs text-dim mono mb-2" style={{ letterSpacing: 2, color: 'var(--red)' }}>
-                            VÁN LẠI (RESET)
-                          </div>
-                          <BracketMatchBox
-                            match={tournament.grandFinalReset}
-                            players={tournament.players}
-                            isAdmin={isAdmin}
-                            currentPlayerId={currentPlayer?.id}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ---- TAB: LEADERBOARD ---- */}
-            {activeTab === 'leaderboard' && (
-              <div style={{ maxWidth: 600, margin: '0 auto' }}>
-                <div className="card">
-                  <div className="card-title">📊 BẢNG ĐIỂM</div>
-                  {tournament.hasQualifier && (
-                    <>
-                      <div className="text-xs text-dim mono mb-3" style={{ letterSpacing: 2 }}>ĐIỂM VÒNG LOẠI</div>
-                      {[...tournament.players]
-                        .sort((a, b) => (b.qualifierScore || 0) - (a.qualifierScore || 0))
-                        .map((p, i) => {
-                          const qualifies = i < tournament.bracketTarget;
-                          return (
-                            <div key={p.id} className={`lb-row ${qualifies ? 'qualify' : 'eliminate'}`}>
-                              <span className="lb-rank">#{i + 1}</span>
-                              <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>{p.jackpotNumber || '??'}</span>
-                              <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
-                              {p.status === 'out' && <span className="out-stamp">OUT</span>}
-                              {qualifies && p.status !== 'out' && <span className="badge badge-green">PASS</span>}
-                              <span className="lb-score text-gold">{p.qualifierScore || 0}</span>
-                            </div>
-                          );
-                        })}
-                      <div className="divider" />
-                    </>
-                  )}
-                  <div className="text-xs text-dim mono mb-3" style={{ letterSpacing: 2 }}>TRẠNG THÁI</div>
-                  {tournament.players.map(p => (
-                    <div key={p.id} className={`lb-row ${p.status === 'out' ? 'eliminate' : 'qualify'}`}>
-                      <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>{p.jackpotNumber || '??'}</span>
-                      <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
-                      {p.status === 'out'
-                        ? <span className="out-stamp">OUT</span>
-                        : <span className="badge badge-green">ACTIVE</span>
-                      }
-                      {tournament.champion?.id === p.id && <span style={{ fontSize: '1.2rem' }}>🏆</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+              );
+            })()}
+          </div>
         )}
+
+        <div className="overflow-x-auto pb-4">
+          {/* Grand Final */}
+          {(grandFinal?.p1 || grandFinal?.p2) && (
+            <div className="mb-6 flex flex-col items-center">
+              <div className="text-lg font-black text-orange-400 mb-2">🏆 CHUNG KẾT</div>
+              <div className="flex gap-4">
+                <MatchBox match={grandFinal} />
+                {grandFinalReset?.status !== "WAITING" && grandFinalReset?.p1 && (
+                  <div>
+                    <div className="text-xs text-orange-400 mb-1 text-center">VÁN LẠI</div>
+                    <MatchBox match={grandFinalReset} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Winners Bracket */}
+          <div className="mb-6">
+            <div className="text-sm font-black text-blue-400 mb-2">🔵 NHÁNH THẮNG (Winners Bracket)</div>
+            <div className="flex gap-4 items-start">
+              {wbRounds.map((round, ri) => (
+                <div key={ri} className="flex flex-col gap-2">
+                  <div className="text-xs text-blue-300 text-center mb-1 font-bold">WB-R{ri + 1}</div>
+                  {round.map(match => <MatchBox key={match.id} match={match} />)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Losers Bracket */}
+          <div>
+            <div className="text-sm font-black text-purple-400 mb-2">🟣 NHÁNH THUA (Losers Bracket)</div>
+            <div className="flex gap-4 items-start">
+              {lbRounds.map((round, ri) => (
+                <div key={ri} className="flex flex-col gap-2">
+                  <div className="text-xs text-purple-300 text-center mb-1 font-bold">LB-R{ri + 1}</div>
+                  {round.map(match => <MatchBox key={match.id} match={match} />)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Player standings */}
+        <div className="mt-6 rounded-xl border border-gray-700 p-4" style={{ background: "#0d0d1a" }}>
+          <div className="text-xs font-bold text-gray-400 mb-2">TRẠNG THÁI THÍ SINH</div>
+          <div className="flex flex-wrap gap-2">
+            {state.players.map(p => (
+              <div key={p.id} className={`flex items-center gap-1 px-2 py-1 rounded text-xs border ${outAnimIds.includes(p.id) || p.status === "OUT" ? "border-red-700 bg-red-900/20" : "border-green-700 bg-green-900/10"}`}>
+                {p.jackpotNum !== null && <span className="font-black" style={{ color: "#f5c518" }}>#{String(p.jackpotNum).padStart(2, "0")}</span>}
+                <span className="text-white">{p.name}</span>
+                {(outAnimIds.includes(p.id) || p.status === "OUT") && <span className="out-stamp text-red-400 font-black text-xs">OUT</span>}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {/* MATCH DETAIL MODAL */}
-      {selectedMatch && (
-        <MatchDetailModal
-          match={selectedMatch}
-          players={tournament?.players || []}
-          isAdmin={isAdmin}
-          onClose={() => setSelectedMatch(null)}
-          onComplete={handleMatchComplete}
-          currentPlayerId={currentPlayer?.id}
-          toastFn={toast}
-        />
-      )}
+  // === CHAMPION ===
+  if (state.phase === PHASES.CHAMPION) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: "#0a0a0f", fontFamily: "'Courier New', monospace" }}>
+        <style>{`
+          @keyframes champion-reveal { 0%{transform:scale(0) rotate(-180deg);opacity:0} 60%{transform:scale(1.2) rotate(5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+          @keyframes confetti-fall { 0%{transform:translateY(-100px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+          .champion-anim{animation:champion-reveal 1.5s ease forwards}
+        `}</style>
+        <div className="champion-anim text-center">
+          <div className="text-8xl mb-4">🏆</div>
+          <div className="text-4xl font-black mb-2" style={{ color: "#f5c518", textShadow: "0 0 40px #f5c518" }}>VÔ ĐỊCH!</div>
+          <div className="text-2xl font-black text-white mb-1">{state.champion?.name}</div>
+          {state.champion?.jackpotNum !== null && (
+            <div className="text-xl font-bold" style={{ color: "#e63946" }}>#{String(state.champion?.jackpotNum).padStart(2, "0")}</div>
+          )}
+          <div className="mt-6 text-gray-500 text-sm">🏎 UnELAB Mini 4WD Tournament Champion</div>
+          <button onClick={() => dispatch({ type: "RESET" })} className="mt-8 px-8 py-3 rounded-lg font-black tracking-widest" style={{ background: "linear-gradient(135deg,#f5c518,#e6a800)", color: "#000" }}>
+            🔄 GIẢI ĐẤU MỚI
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-      <ToastContainer toasts={toasts} />
-    </>
-  );
+  return null;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-</script>
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
 </body>
 </html>
