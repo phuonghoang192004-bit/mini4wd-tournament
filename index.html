@@ -764,7 +764,7 @@ function App() {
     toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
     setActiveTab('players');
   };
-  async function createRoomOnline(roomCode){
+async function createRoomOnline(roomCode){
 
     console.log("CREATE ROOM", roomCode);
 
@@ -782,11 +782,8 @@ function App() {
     console.log("ERROR:", error);
 
     return !error;
-  }
-
 }
   const createRoom = async () => {
-    console.log("CLICK CREATE ROOM");
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
     const ok = await createRoomOnline(name);
