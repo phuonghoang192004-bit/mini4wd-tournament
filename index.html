@@ -865,46 +865,7 @@ useEffect(() => {
     toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
     setActiveTab('players');
   };
-RoomService.createRoom = async function(roomCode) {
 
-    console.log("CREATE ROOM", roomCode);
-
-    const { data, error } = await supabase
-        .from("rooms")
-        .insert([
-            {
-                room_code: roomCode,
-                tournament: { phase: 'jackpot', players: [] }
-            }
-        ])
-        .select();
-
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
-
-    return !error;
-}
-
-RoomService.joinRoom = async function(roomCode){
-
-    const { data, error } = await supabase
-        .from("rooms")
-        .select("*")
-        .eq("room_code", roomCode)
-        .single();
-
-    console.log(data);
-    console.log(error);
-
-    if(error){
-
-        return null;
-
-    }
-
-    return data;
-
-}
   const createRoom = async () => {
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
@@ -2012,7 +1973,10 @@ function AdminCarRow({ car, approved, onApprove, onEdit, onDelete }) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+ReactDOM.render(
+    <App />,
+    document.getElementById("root")
+);
 </script>
 </body>
 </html>
