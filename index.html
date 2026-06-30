@@ -766,28 +766,27 @@ function App() {
   };
   async function createRoomOnline(roomCode){
 
-    const { error } = await supabase
+    console.log("CREATE ROOM", roomCode);
+
+    const { data, error } = await supabase
         .from("rooms")
-        .insert({
+        .insert([
+            {
+                room_code: roomCode,
+                tournament: {}
+            }
+        ])
+        .select();
 
-            room_code: roomCode,
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
 
-            tournament: {}
-
-        });
-
-    if(error){
-
-        console.error(error);
-
-        return false;
-
-    }
-
-    return true;
+    return !error;
+  }
 
 }
   const createRoom = async () => {
+    console.log("CLICK CREATE ROOM");
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
     const ok = await createRoomOnline(name);
