@@ -225,14 +225,16 @@ function clearSession() {
 
 // Global room store (shared across tabs via localStorage)
 const ROOM_KEY = 'm4wd_room_v3';
+// Thay thế hàm saveRoom cũ bằng đoạn này
 function saveRoom(room) {
   try { localStorage.setItem(ROOM_KEY, JSON.stringify(room)); } catch(e) {}
-}
-function loadRoom() {
-  try {
-    const raw = localStorage.getItem(ROOM_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch(e) { return null; }
+  // Đẩy lên Supabase để các thiết bị khác (guest) đọc được
+  if (room && room.roomName) {
+    supabase.from('rooms')
+      .update({ tournament: room.tournament, guest_cars: room.guestCars || {} })
+      .eq('room_code', room.roomName)
+      .then(({error}) => { if (error) console.error('Cloud sync error:', error); });
+  }
 }
 
 // ============================================================
@@ -732,19 +734,22 @@ function App() {
   };
 
   // Sync room data periodically (simple polling for same-device multi-tab)
+  // Sync room data realtime qua Supabase (đồng bộ giữa Admin và Guest, kể cả khác thiết bị)
   useEffect(() => {
     if (!roomName) return;
-    const iv = setInterval(() => {
-      const saved = loadRoom();
-      if (saved && saved.roomName === roomName) {
-        // Only sync if data changed (shallow check)
-        const tJSON = JSON.stringify(saved.tournament);
-        const cJSON = JSON.stringify(saved.guestCars);
-        setTournament(prev => JSON.stringify(prev)!==tJSON ? saved.tournament : prev);
-        setGuestCars(prev => JSON.stringify(prev)!==cJSON ? (saved.guestCars||{}) : prev);
-      }
-    }, 2000);
-    return () => clearInterval(iv);
+    const channel = supabase
+      .channel(`room-${roomName}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomName}` },
+        (payload) => {
+          const row = payload.new;
+          if (!row) return;
+          setTournament(row.tournament || null);
+          setGuestCars(row.guest_cars || {});
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [roomName]);
 
   // ---- Auth ----
@@ -773,12 +778,31 @@ function App() {
   };
 
   // ---- Room join ----
-  const joinRoom = () => {
+  // Hàm joinRoom mới có hỗ trợ tìm phòng từ Database
+  const joinRoom = async () => {
     if (!roomInput.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
-    const found = loadRoomData(roomInput.trim());
-    if (!found) { toast(`⚠️ Không tìm thấy phòng "${roomInput.trim()}"!`,'error'); return; }
-    setRoomName(roomInput.trim());
-    toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
+    const code = roomInput.trim();
+    const foundLocal = loadRoomData(code);
+    if (foundLocal) {
+      setRoomName(code);
+      toast(`✅ Đã vào phòng "${code}"!`,'success');
+      setActiveTab('players');
+      return;
+    }
+    // Tìm trên Supabase nếu máy hiện tại chưa có dữ liệu
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('room_code', code)
+      .maybeSingle();
+    if (error || !data) {
+      toast(`⚠️ Không tìm thấy phòng "${code}"!`,'error');
+      return;
+    }
+    setTournament(data.tournament || null);
+    setGuestCars(data.guest_cars || {});
+    setRoomName(code);
+    toast(`✅ Đã vào phòng "${code}"!`,'success');
     setActiveTab('players');
   };
 
@@ -1077,7 +1101,8 @@ function App() {
 
     const updatedT = { ...tournament, players: updatedPlayers, phase: 'bracketSeed' };
     setTournament(updatedT);
-    syncToCloud(updatedT, guestCars);
+    // Tìm dòng syncToCloud và sửa thành:
+    saveRoom({ roomName, tournament: updatedT, guestCars });
     toast(`🏆 Đã chọn Top ${target} vào bảng đấu. ${updatedPlayers.filter(p=>p.status==='out').length} xe đã bị loại!`, 'success');
   };
 
@@ -1146,7 +1171,8 @@ function App() {
         matchHistory: {}
     };
     setTournament(updatedT);
-    syncToCloud(updatedT, guestCars);
+    // Tìm dòng syncToCloud và sửa thành:
+    saveRoom({ roomName, tournament: updatedT, guestCars });
     setActiveTab('bracket');
 };
 
