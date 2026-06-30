@@ -756,11 +756,11 @@ function App() {
   };
 
   // ---- Room join ----
-  const joinRoom = () => {
+  const joinRoom = async () => {
     if (!roomInput.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
-    const found = loadRoomData(roomInput.trim());
-    if (!found) { toast(`⚠️ Không tìm thấy phòng "${roomInput.trim()}"!`,'error'); return; }
-    setRoomName(roomInput.trim());
+    const room = await joinRoomOnline(roomInput.trim());
+    if (!room) { toast(`⚠️ Không tìm thấy phòng "${roomInput.trim()}"!`,'error'); return; }
+    setRoomName(room.room_code);
     toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
     setActiveTab('players');
   };
@@ -782,6 +782,27 @@ async function createRoomOnline(roomCode){
     console.log("ERROR:", error);
 
     return !error;
+}
+
+async function joinRoomOnline(roomCode){
+
+    const { data, error } = await supabase
+        .from("rooms")
+        .select("*")
+        .eq("room_code", roomCode)
+        .single();
+
+    console.log(data);
+    console.log(error);
+
+    if(error){
+
+        return null;
+
+    }
+
+    return data;
+
 }
   const createRoom = async () => {
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
