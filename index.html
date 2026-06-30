@@ -703,7 +703,7 @@ function App() {
     testSupabase();
 
   }, []); 
-  
+
   // Load room data when joining
   const loadRoomData = (name) => {
     const saved = loadRoom();
@@ -766,10 +766,42 @@ function App() {
     setActiveTab('players');
   };
 
-  const createRoom = () => {
+  const createRoom = async () => {
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
+    const ok = await createRoomOnline(name);
+
+    if(!ok){
+
+    toast("Tên phòng đã tồn tại","error");
+
+    return;
+
+    }
     setRoomName(name);
+    async function createRoomOnline(roomCode){
+
+    const { error } = await supabase
+        .from("rooms")
+        .insert({
+
+            room_code: roomCode,
+
+            tournament: {}
+
+        });
+
+    if(error){
+
+        console.error(error);
+
+        return false;
+
+    }
+
+    return true;
+
+  }
     saveRoom({ roomName: name, tournament: null, guestCars: {} });
     toast(`✅ Phòng "${name}" đã tạo!`,'success');
     setShowNewTournament(true);
