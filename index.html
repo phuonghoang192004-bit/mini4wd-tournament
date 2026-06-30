@@ -3,340 +3,1814 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SGMS Mini 4WD Tournament Manager</title>
+  <title>🏆 Mini 4WD Tournament Manager</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
     :root {
-      --gold: #f5c518; --gold-dim: #c9a000; --red: #e63946; --cyan: #00d4ff;
-      --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24; --border: #2a2a3a;
-      --text: #e8e8f0; --text-dim: #7878a0; --green: #2ecc71;
+      --gold: #f5c518; --gold-dim: #c9a000; --red: #e63946; --red-dim: #a02630;
+      --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24; --bg4: #22222f;
+      --border: #2a2a3a; --text: #e8e8f0; --text-dim: #7878a0;
+      --green: #2ecc71; --cyan: #00d4ff; --purple: #9b59b6;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; overflow-x: hidden; }
-
-    /* UI Components */
-    .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    .header { background: var(--bg2); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; }
-    .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--gold); font-size: 1.5rem; letter-spacing: 3px; }
-    
-    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-family: 'Orbitron'; transition: 0.3s; font-size: 0.8rem; }
-    .btn-gold { background: var(--gold); color: #000; }
-    .btn-gold:disabled { background: var(--text-dim); cursor: not-allowed; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .input { background: var(--bg3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; width: 100%; outline: none; margin-bottom: 10px; }
-    
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .tab { padding: 10px 15px; cursor: pointer; color: var(--text-dim); font-family: 'Orbitron'; font-size: 0.75rem; }
-    .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
-
-    /* Matching & Brackets */
-    .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .match-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .match-box.active { border-color: var(--gold); box-shadow: 0 0 15px rgba(245, 197, 24, 0.2); }
-    .match-header { padding: 5px 10px; background: rgba(255,255,255,0.05); font-size: 0.7rem; font-family: 'Orbitron'; color: var(--gold); display: flex; justify-content: space-between; }
-    
-    .player-row { padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .player-row:last-child { border-bottom: none; }
-    .winner { background: rgba(46, 204, 113, 0.1); }
-    .out-stamp { border: 1px solid var(--red); color: var(--red); padding: 2px 5px; font-size: 0.6rem; font-weight: 900; border-radius: 3px; }
-
-    .dice-btn { width: 35px; height: 35px; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; font-family: 'Orbitron'; font-weight: 900; color: var(--gold); }
-    .score-input { width: 50px; background: #000; border: 1px solid var(--border); color: var(--gold); text-align: center; font-weight: bold; padding: 5px; }
-    
-    .lane-badge { font-family: 'Share Tech Mono'; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-    .lane-1 { background: var(--red); color: white; }
-    .lane-2 { background: var(--gold); color: black; }
-    .lane-3 { background: var(--cyan); color: black; }
+    body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 16px; min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+    @keyframes glow-pulse { 0%,100%{box-shadow:0 0 10px var(--gold),0 0 20px rgba(245,197,24,.25)} 50%{box-shadow:0 0 20px var(--gold),0 0 40px rgba(245,197,24,.5)} }
+    @keyframes spin-reel { 0%{transform:translateY(0)} 100%{transform:translateY(-900%)} }
+    @keyframes stamp-in { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(.9) rotate(2deg);opacity:1} 100%{transform:scale(1) rotate(0);opacity:1} }
+    @keyframes slide-in-right { from{transform:translateX(60px);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes slide-in-up { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    @keyframes dice-roll { 0%{transform:rotate(0) scale(1)} 25%{transform:rotate(180deg) scale(1.3)} 50%{transform:rotate(360deg) scale(.8)} 75%{transform:rotate(540deg) scale(1.2)} 100%{transform:rotate(720deg) scale(1)} }
+    @keyframes bg-grid { 0%{background-position:0 0} 100%{background-position:40px 40px} }
+    @keyframes winner-flash { 0%,100%{background:rgba(245,197,24,.12);border-color:var(--gold)} 50%{background:rgba(245,197,24,.3);border-color:var(--gold);box-shadow:0 0 30px var(--gold)} }
+    @keyframes number-pop { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
+    @keyframes jackpot-glow { 0%,100%{text-shadow:0 0 10px var(--gold),0 0 20px var(--gold)} 50%{text-shadow:0 0 20px var(--gold),0 0 40px var(--gold),0 0 60px var(--gold)} }
+    .app-container { max-width: 1400px; margin: 0 auto; padding: 0 12px; }
+    .app-header { background:linear-gradient(135deg,var(--bg2),var(--bg3)); border-bottom:2px solid rgba(245,197,24,.25); padding:12px 20px; display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:100; }
+    .header-logo { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; color:var(--gold); text-shadow:0 0 20px rgba(245,197,24,.5); letter-spacing:2px; }
+    .header-badge { background:var(--bg4); border:1px solid var(--border); border-radius:20px; padding:3px 12px; font-size:.75rem; color:var(--text-dim); font-family:'Share Tech Mono',monospace; }
+    .header-badge.admin { border-color:var(--gold); color:var(--gold); }
+    .header-badge.guest { border-color:var(--cyan); color:var(--cyan); }
+    .card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; }
+    .card-title { font-family:'Orbitron',monospace; font-size:.85rem; font-weight:700; color:var(--gold); letter-spacing:2px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border:none; border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:.95rem; font-weight:700; cursor:pointer; transition:all .2s; letter-spacing:1px; position:relative; overflow:hidden; }
+    .btn:disabled { opacity:.4; cursor:not-allowed; }
+    .btn-gold { background:linear-gradient(135deg,var(--gold),var(--gold-dim)); color:#000; }
+    .btn-gold:hover:not(:disabled) { box-shadow:0 0 20px rgba(245,197,24,.5); transform:translateY(-1px); }
+    .btn-red { background:linear-gradient(135deg,var(--red),var(--red-dim)); color:#fff; }
+    .btn-red:hover:not(:disabled) { box-shadow:0 0 15px rgba(230,57,70,.375); transform:translateY(-1px); }
+    .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+    .btn-outline:hover:not(:disabled) { border-color:var(--gold); color:var(--gold); }
+    .btn-cyan { background:linear-gradient(135deg,rgba(0,212,255,.19),rgba(0,212,255,.06)); border:1px solid var(--cyan); color:var(--cyan); }
+    .btn-cyan:hover:not(:disabled) { box-shadow:0 0 15px rgba(0,212,255,.25); }
+    .btn-green { background:linear-gradient(135deg,rgba(46,204,113,.19),rgba(46,204,113,.06)); border:1px solid var(--green); color:var(--green); }
+    .btn-sm { padding:6px 12px; font-size:.8rem; }
+    .btn-lg { padding:14px 32px; font-size:1.1rem; }
+    .btn-xl { padding:20px 48px; font-size:1.3rem; }
+    .input { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:1rem; width:100%; transition:border-color .2s; }
+    .input:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(245,197,24,.125); }
+    .input::placeholder { color:var(--text-dim); }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:20px; font-size:.75rem; font-weight:700; font-family:'Share Tech Mono',monospace; letter-spacing:1px; }
+    .badge-gold { background:rgba(245,197,24,.125); border:1px solid var(--gold); color:var(--gold); }
+    .badge-red { background:rgba(230,57,70,.125); border:1px solid var(--red); color:var(--red); }
+    .badge-green { background:rgba(46,204,113,.125); border:1px solid var(--green); color:var(--green); }
+    .badge-cyan { background:rgba(0,212,255,.125); border:1px solid var(--cyan); color:var(--cyan); }
+    .badge-dim { background:var(--bg4); border:1px solid var(--border); color:var(--text-dim); }
+    .badge-purple { background:rgba(155,89,182,.125); border:1px solid var(--purple); color:var(--purple); }
+    .login-screen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(245,197,24,.031) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(230,57,70,.024) 0%,transparent 50%),var(--bg); position:relative; overflow:hidden; }
+    .login-screen::before { content:''; position:absolute; inset:0; background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px); background-size:40px 40px; opacity:.3; animation:bg-grid 8s linear infinite; }
+    .login-logo { font-family:'Orbitron',monospace; font-size:clamp(1.8rem,5vw,3rem); font-weight:900; color:var(--gold); text-align:center; line-height:1.2; animation:jackpot-glow 3s ease-in-out infinite; margin-bottom:8px; position:relative; }
+    .login-subtitle { color:var(--text-dim); font-family:'Share Tech Mono',monospace; font-size:.85rem; text-align:center; letter-spacing:3px; margin-bottom:48px; position:relative; }
+    .login-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:32px; width:100%; max-width:460px; position:relative; animation:slide-in-up .4s ease; }
+    .jackpot-reel-wrapper { width:72px; height:80px; background:var(--bg); border:2px solid var(--gold); border-radius:8px; overflow:hidden; position:relative; box-shadow:inset 0 0 20px rgba(245,197,24,.125),0 0 15px rgba(245,197,24,.19); }
+    .jackpot-digit { height:80px; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:2.2rem; font-weight:900; color:var(--gold); text-shadow:0 0 15px rgba(245,197,24,.5); flex-shrink:0; }
+    .jackpot-result { font-family:'Orbitron',monospace; font-size:2rem; font-weight:900; color:var(--gold); text-shadow:0 0 20px var(--gold); animation:number-pop .4s ease; }
+    .dice-face { width:72px; height:72px; background:var(--bg3); border:2px solid var(--gold); border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; color:var(--gold); box-shadow:0 0 15px rgba(245,197,24,.19); position:relative; cursor:pointer; transition:all .2s; }
+    .dice-face.rolling { animation:dice-roll .8s ease; }
+    .dice-face:hover:not(.locked):not(.rolling):not(.disabled) { box-shadow:0 0 25px rgba(245,197,24,.375); transform:scale(1.05); }
+    .dice-face.locked { border-color:var(--green); color:var(--green); box-shadow:0 0 15px rgba(46,204,113,.19); cursor:default; }
+    .dice-face.disabled { opacity:.4; cursor:not-allowed; }
+    .player-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; animation:slide-in-right .3s ease; }
+    .player-row:hover { border-color:rgba(245,197,24,.25); }
+    .player-row.out { opacity:.5; filter:grayscale(.7); }
+    .bracket-container { overflow-x:auto; padding-bottom:20px; }
+    .bracket-section-title { font-family:'Orbitron',monospace; font-size:.8rem; font-weight:700; letter-spacing:3px; margin:20px 0 12px; display:flex; align-items:center; gap:10px; }
+    .bracket-round-label { font-family:'Share Tech Mono',monospace; font-size:.7rem; color:var(--text-dim); text-align:center; letter-spacing:2px; margin-bottom:8px; }
+    .match-box { background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin:4px 0; transition:all .3s; position:relative; }
+    .match-box.active { border-color:var(--gold); box-shadow:0 0 15px rgba(245,197,24,.19); animation:glow-pulse 2s ease-in-out infinite; }
+    .match-box.completed { border-color:var(--border); }
+    .match-player { padding:8px 12px; display:flex; align-items:center; gap:8px; font-size:.85rem; border-bottom:1px solid var(--border); transition:background .2s; }
+    .match-player:last-child { border-bottom:none; }
+    .match-player.winner { background:rgba(245,197,24,.094); color:var(--gold); font-weight:700; }
+    .match-player.loser { background:transparent; color:var(--text-dim); }
+    .match-player.bye { background:rgba(0,212,255,.063); color:var(--cyan); }
+    .match-number-badge { font-family:'Share Tech Mono',monospace; font-size:.7rem; color:var(--gold); background:rgba(245,197,24,.094); padding:1px 5px; border-radius:3px; flex-shrink:0; }
+    .match-score { font-family:'Orbitron',monospace; font-size:.9rem; font-weight:700; margin-left:auto; min-width:20px; text-align:right; }
+    .score-btn { width:44px; height:44px; border-radius:8px; border:2px solid var(--border); background:var(--bg4); color:var(--text); font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; cursor:pointer; transition:all .15s; }
+    .score-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .score-btn.selected { border-color:var(--gold); background:rgba(245,197,24,.125); color:var(--gold); box-shadow:0 0 10px rgba(245,197,24,.25); }
+    .tab-bar { display:flex; gap:4px; background:var(--bg2); padding:4px; border-radius:10px; margin-bottom:20px; flex-wrap:wrap; }
+    .tab { flex:1; min-width:80px; padding:8px 16px; border:none; border-radius:7px; background:transparent; color:var(--text-dim); font-family:'Rajdhani',sans-serif; font-size:.85rem; font-weight:700; cursor:pointer; transition:all .2s; letter-spacing:1px; white-space:nowrap; }
+    .tab.active { background:var(--bg4); color:var(--gold); }
+    .tab:hover:not(.active) { color:var(--text); }
+    .progress-bar { background:var(--bg3); border-radius:20px; height:6px; overflow:hidden; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--red)); border-radius:20px; transition:width .5s ease; }
+    .out-stamp { display:inline-block; font-family:'Orbitron',monospace; font-size:.75rem; font-weight:900; color:var(--red); border:2px solid var(--red); border-radius:4px; padding:1px 6px; letter-spacing:2px; animation:stamp-in .3s ease; }
+    .lb-row { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:8px; margin-bottom:4px; font-size:.9rem; transition:all .3s; }
+    .lb-row.qualify { background:rgba(245,197,24,.063); border:1px solid rgba(245,197,24,.19); }
+    .lb-row.eliminate { background:rgba(230,57,70,.031); border:1px solid var(--border); opacity:.6; }
+    .lb-rank { font-family:'Orbitron',monospace; font-size:1rem; font-weight:900; color:var(--gold); min-width:32px; }
+    .lb-score { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; margin-left:auto; }
+    .toast-container { position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:var(--bg3); border:1px solid var(--gold); border-radius:8px; padding:12px 18px; font-size:.85rem; animation:slide-in-right .3s ease; box-shadow:0 4px 20px rgba(0,0,0,.5); max-width:300px; }
+    .toast.error { border-color:var(--red); }
+    .toast.success { border-color:var(--green); }
+    .phase-steps { display:flex; gap:0; margin-bottom:24px; overflow-x:auto; padding-bottom:4px; }
+    .phase-step { flex:1; min-width:80px; display:flex; flex-direction:column; align-items:center; gap:4px; position:relative; }
+    .phase-step::after { content:''; position:absolute; top:14px; left:50%; right:-50%; height:2px; background:var(--border); }
+    .phase-step:last-child::after { display:none; }
+    .phase-step.done::after { background:var(--gold); }
+    .phase-dot { width:28px; height:28px; border-radius:50%; background:var(--bg3); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; position:relative; z-index:1; }
+    .phase-step.done .phase-dot { background:var(--gold); border-color:var(--gold); color:#000; }
+    .phase-step.active .phase-dot { border-color:var(--gold); color:var(--gold); box-shadow:0 0 10px rgba(245,197,24,.375); }
+    .phase-label { font-size:.65rem; font-family:'Share Tech Mono',monospace; color:var(--text-dim); text-align:center; letter-spacing:1px; }
+    .phase-step.active .phase-label,.phase-step.done .phase-label { color:var(--gold); }
+    .lane-badge { font-family:'Share Tech Mono',monospace; font-size:.75rem; padding:2px 8px; border-radius:4px; font-weight:700; }
+    .lane-1 { background:rgba(230,57,70,.125); border:1px solid var(--red); color:var(--red); }
+    .lane-2 { background:rgba(245,197,24,.125); border:1px solid var(--gold); color:var(--gold); }
+    .lane-3 { background:rgba(0,212,255,.125); border:1px solid var(--cyan); color:var(--cyan); }
+    .winner-crown { color:var(--gold); font-size:1.2rem; }
+    .pending-car { background:var(--bg3); border:1px solid rgba(155,89,182,.4); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+    .approved-car { background:var(--bg3); border:1px solid rgba(46,204,113,.3); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+    .mono { font-family:'Share Tech Mono',monospace; }
+    .orbitron { font-family:'Orbitron',monospace; }
+    .text-gold { color:var(--gold); }
+    .text-red { color:var(--red); }
+    .text-green { color:var(--green); }
+    .text-cyan { color:var(--cyan); }
+    .text-dim { color:var(--text-dim); }
+    .flex { display:flex; }
+    .flex-col { flex-direction:column; }
+    .items-center { align-items:center; }
+    .justify-between { justify-content:space-between; }
+    .justify-center { justify-content:center; }
+    .gap-2 { gap:8px; }
+    .gap-3 { gap:12px; }
+    .gap-4 { gap:16px; }
+    .mb-2 { margin-bottom:8px; }
+    .mb-3 { margin-bottom:12px; }
+    .mb-4 { margin-bottom:16px; }
+    .mb-6 { margin-bottom:24px; }
+    .mt-2 { margin-top:8px; }
+    .mt-3 { margin-top:12px; }
+    .mt-4 { margin-top:16px; }
+    .p-2 { padding:8px; }
+    .p-3 { padding:12px; }
+    .w-full { width:100%; }
+    .text-center { text-align:center; }
+    .text-sm { font-size:.85rem; }
+    .text-xs { font-size:.75rem; }
+    .font-bold { font-weight:700; }
+    .relative { position:relative; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    .section-header { font-family:'Orbitron',monospace; font-size:.85rem; font-weight:700; color:var(--gold); letter-spacing:2px; margin-bottom:12px; }
+    .divider { height:1px; background:var(--border); margin:20px 0; }
+    @media(max-width:640px){.login-card{padding:20px}.btn-xl{padding:14px 28px;font-size:1.1rem}.app-header{padding:8px 12px}}
   </style>
 </head>
 <body>
-  <div id="root"></div>
-
+<div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef, useCallback } = React;
 
-// --- Helper Functions ---
-const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
-const getTargetSize = (n) => n < 16 ? 8 : (n < 32 ? 16 : 32);
+// ============================================================
+// STORAGE KEY
+// ============================================================
+const STORAGE_KEY = 'm4wd_session_v3';
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [tournament, setTournament] = useState(() => {
-    const saved = localStorage.getItem('m4wd_data');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [activeTab, setActiveTab] = useState('info');
-  const [passInput, setPassInput] = useState('');
-  const [guestName, setGuestName] = useState('');
+function saveSession(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function clearSession() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
 
-  // Lưu dữ liệu vào LocalStorage mỗi khi có thay đổi
-  useEffect(() => {
-    if (tournament) {
-      localStorage.setItem('m4wd_data', JSON.stringify(tournament));
-    }
-  }, [tournament]);
+// Global room store (shared across tabs via localStorage)
+const ROOM_KEY = 'm4wd_room_v3';
+function saveRoom(room) {
+  try { localStorage.setItem(ROOM_KEY, JSON.stringify(room)); } catch(e) {}
+}
+function loadRoom() {
+  try {
+    const raw = localStorage.getItem(ROOM_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
 
-  const loginAdmin = () => {
-    if (passInput === 'Phuong090') setUser({ role: 'admin', name: 'Admin' });
-    else alert('Mật khẩu sai!');
-  };
+// ============================================================
+// UTILITIES
+// ============================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function getBracketTarget(count) {
+  if (count <= 8) return 8;
+  if (count <= 16) return 16;
+  if (count <= 32) return 32;
+  return 64;
+}
+function needsQualifier(count) {
+  return count !== 8 && count !== 16 && count !== 32;
+}
 
-  const loginGuest = () => {
-    if (!guestName.trim()) return alert('Vui lòng nhập tên!');
-    setUser({ role: 'guest', name: guestName.trim() });
-  };
-
-  const initTournament = (name) => {
-    setTournament({
-      name,
-      phase: 'registration', // registration -> jackpot -> qualifier -> bracket
-      players: [],
-      matches: [],
-      history: []
-    });
-  };
-
-  const addPlayer = (name) => {
-    if (tournament.players.some(p => p.name === name)) return alert('Tên đã tồn tại!');
-    const newP = { id: Date.now(), name, jackpotId: null, totalScore: 0, status: 'active', currentLane: null };
-    setTournament(t => ({ ...t, players: [...t.players, newP] }));
-  };
-
-  // --- Logic Chia Bảng Vòng Loại (Không lẻ người) ---
-  const startQualifiers = () => {
-    let pList = shuffle(tournament.players.filter(p => p.status === 'active'));
-    let newMatches = [];
-    
-    while (pList.length > 0) {
-      let size = 3;
-      if (pList.length === 4 || pList.length === 2) size = 2; // Xử lý để không lẻ 1
-      const group = pList.splice(0, size);
-      newMatches.push({
-        id: 'Q-' + Math.random(),
-        players: group.map(p => ({ ...p, matchScore: 0, lane: null })),
-        isDone: false
-      });
-    }
-    setTournament(t => ({ ...t, phase: 'qualifier', matches: newMatches }));
-  };
-
-  // --- Logic Xóc Xúc Xắc ---
-  const rollLane = (matchId, playerId) => {
-    setTournament(t => {
-      const match = t.matches.find(m => m.id === matchId);
-      const playersInMatch = match.players;
-      const rolled = playersInMatch.map(p => p.lane).filter(l => l !== null);
-      
-      let available = playersInMatch.length === 2 ? [1, 3] : [1, 2, 3];
-      available = available.filter(l => !rolled.includes(l));
-      
-      if (available.length === 0) return t;
-      const result = available[Math.floor(Math.random() * available.length)];
-
-      return {
-        ...t,
-        matches: t.matches.map(m => m.id === matchId ? {
-          ...m,
-          players: m.players.map(p => p.id === playerId ? { ...p, lane: result } : p)
-        } : m)
-      };
-    });
-  };
-
-  const submitMatch = (matchId) => {
-    setTournament(t => {
-      const match = t.matches.find(m => m.id === matchId);
-      const updatedPlayers = t.players.map(p => {
-        const pm = match.players.find(x => x.id === p.id);
-        return pm ? { ...p, totalScore: p.totalScore + pm.matchScore } : p;
-      });
-      return {
-        ...t,
-        players: updatedPlayers,
-        matches: t.matches.map(m => m.id === matchId ? { ...m, isDone: true } : m)
-      };
-    });
-  };
-
-  const finalizeQualifiers = () => {
-    const target = getTargetSize(tournament.players.length);
-    const sorted = [...tournament.players].sort((a,b) => b.totalScore - a.totalScore);
-    const finalized = sorted.map((p, i) => ({
-      ...p,
-      status: i < target ? 'active' : 'out'
-    }));
-    setTournament(t => ({ ...t, players: finalized, phase: 'bracket_ready', matches: [] }));
-  };
-
-  // --- Render Login ---
-  if (!user) return (
-    <div className="login-container" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card" style={{ width: '350px' }}>
-        <h2 style={{ fontFamily: 'Orbitron', color: 'var(--gold)', textAlign: 'center', marginBottom: '25px' }}>SGMS M4WD</h2>
-        <input className="input" type="password" placeholder="Admin Pass" onChange={e => setPassInput(e.target.value)} />
-        <button className="btn btn-gold" onClick={loginAdmin} style={{ width: '100%' }}>ADMIN LOGIN</button>
-        <div style={{ margin: '20px 0', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem' }}>--- OR ---</div>
-        <input className="input" placeholder="Tên của bạn" onChange={e => setGuestName(e.target.value)} />
-        <button className="btn btn-outline" onClick={loginGuest} style={{ width: '100%' }}>GUEST VIEW</button>
-      </div>
+// ============================================================
+// TOAST SYSTEM
+// ============================================================
+function ToastContainer({ toasts }) {
+  return (
+    <div className="toast-container">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>
+      ))}
     </div>
   );
+}
+
+// ============================================================
+// JACKPOT REEL
+// ============================================================
+function JackpotReel({ onResult, disabled, existingNumbers, label }) {
+  const [spinning, setSpinning] = useState(false);
+  const [result, setResult] = useState(null);
+  const [digits, setDigits] = useState(['?','?']);
+  const intervalRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  const spin = () => {
+    if (spinning || disabled || result !== null) return;
+    setSpinning(true);
+    setDigits(['?','?']);
+    let ticks = 0;
+    intervalRef.current = setInterval(() => {
+      setDigits([Math.floor(Math.random()*10), Math.floor(Math.random()*10)]);
+      ticks++;
+    }, 80);
+    timeoutRef.current = setTimeout(() => {
+      clearInterval(intervalRef.current);
+      let num; let attempts = 0;
+      do {
+        num = Math.floor(Math.random()*100).toString().padStart(2,'0');
+        attempts++;
+      } while (existingNumbers.includes(num) && attempts < 200);
+      setDigits(num.split(''));
+      setResult(num);
+      setSpinning(false);
+      onResult(num);
+    }, 2000 + Math.random()*500);
+  };
+
+  useEffect(() => () => { clearInterval(intervalRef.current); clearTimeout(timeoutRef.current); }, []);
 
   return (
-    <div>
-      <header className="header">
-        <div className="logo">SGMS TOURNAMENT</div>
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <span className="lane-badge" style={{ background: 'var(--gold)', color: 'black' }}>{user.name}</span>
-          <button onClick={() => { localStorage.removeItem('m4wd_data'); location.reload(); }} className="btn btn-outline" style={{ padding: '5px 10px' }}>RESET</button>
-        </div>
-      </header>
-
-      <div className="app-container">
-        {!tournament ? (
-          <div className="card" style={{ maxWidth: '400px', margin: 'auto' }}>
-            <h3 style={{ fontFamily: 'Orbitron', marginBottom: '15px' }}>TẠO GIẢI MỚI</h3>
-            <input className="input" id="tn" placeholder="Tên giải đấu" />
-            <button className="btn btn-gold" style={{ width: '100%' }} onClick={() => initTournament(document.getElementById('tn').value)}>KHỞI TẠO</button>
-          </div>
-        ) : (
-          <>
-            <div className="tabs">
-              <div className={`tab ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>THÔNG TIN</div>
-              <div className={`tab ${activeTab === 'play' ? 'active' : ''}`} onClick={() => setActiveTab('play')}>THI ĐẤU</div>
-              <div className={`tab ${activeTab === 'rank' ? 'active' : ''}`} onClick={() => setActiveTab('rank')}>XẾP HẠNG</div>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+      {label && <div className="text-xs text-dim mono" style={{letterSpacing:2}}>{label}</div>}
+      <div style={{display:'flex',gap:6}}>
+        {[0,1].map(i => (
+          <div key={i} className="jackpot-reel-wrapper">
+            <div style={{display:'flex',flexDirection:'column',height:'100%',alignItems:'center',justifyContent:'center'}}>
+              <span className="jackpot-digit" style={{lineHeight:'80px'}}>{digits[i]}</span>
             </div>
+          </div>
+        ))}
+      </div>
+      {result ? (
+        <div style={{textAlign:'center'}}>
+          <div className="jackpot-result">{result}</div>
+          <div className="badge badge-gold mt-2">ĐÃ KHÓA</div>
+        </div>
+      ) : (
+        <button className="btn btn-gold btn-sm" onClick={spin} disabled={disabled||spinning}>
+          {spinning ? '🎰 Đang quay...' : '🎰 QUAY SỐ'}
+        </button>
+      )}
+    </div>
+  );
+}
 
-            {activeTab === 'info' && (
-              <div className="card">
-                <h2>{tournament.name}</h2>
-                <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginBottom: '20px' }}>Giai đoạn: {tournament.phase.toUpperCase()}</p>
-                
-                {tournament.phase === 'registration' && (
-                  <div>
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                      <input className="input" id="pn" placeholder="Tên Racer" style={{ marginBottom: 0 }} />
-                      <button className="btn btn-gold" onClick={() => addPlayer(document.getElementById('pn').value)}>ĐĂNG KÝ</button>
-                    </div>
-                    <div className="match-grid">
-                      {tournament.players.map(p => (
-                        <div key={p.id} className="player-row" style={{ background: 'var(--bg3)', borderRadius: '6px' }}>
-                          <span>{p.name}</span>
-                          {user.role === 'admin' && <button style={{ color: 'red', border: 'none', background: 'none' }} onClick={() => setTournament(t => ({ ...t, players: t.players.filter(x => x.id !== p.id) }))}>XÓA</button>}
-                        </div>
+// ============================================================
+// DICE ROLLER — unique lane per match
+// ============================================================
+function DiceRoller({ allowedValues, onResult, disabled, locked, lockedValue }) {
+  const [rolling, setRolling] = useState(false);
+  const [displayVal, setDisplayVal] = useState('?');
+
+  const roll = () => {
+    if (rolling || disabled || locked) return;
+    setRolling(true);
+    let ticks = 0;
+    const iv = setInterval(() => {
+      setDisplayVal(allowedValues[Math.floor(Math.random()*allowedValues.length)]);
+      ticks++;
+      if (ticks > 15) {
+        clearInterval(iv);
+        // Pick random from allowedValues (caller ensures uniqueness via allowedValues filtering)
+        const finalVal = allowedValues[Math.floor(Math.random()*allowedValues.length)];
+        setDisplayVal(finalVal);
+        setRolling(false);
+        onResult(finalVal);
+      }
+    }, 60);
+  };
+
+  const val = locked ? lockedValue : displayVal;
+  const laneClass = val === 1 ? 'lane-1' : val === 2 ? 'lane-2' : val === 3 ? 'lane-3' : '';
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+      <div
+        className={`dice-face${rolling?' rolling':''}${locked?' locked':''}${disabled&&!locked?' disabled':''}`}
+        onClick={roll}
+        title={locked?'Đã khóa':disabled?'Không có quyền':'Nhấn để xóc xúc xắc'}
+      >
+        {val==='?' ? '?' : val}
+      </div>
+      {locked ? (
+        <span className={`lane-badge ${laneClass}`}>LANE {val}</span>
+      ) : (
+        <span className="text-xs text-dim" style={{fontFamily:'Share Tech Mono'}}>
+          {rolling ? 'đang xóc...' : disabled ? '🔒' : allowedValues.length===0 ? 'Hết lane!' : 'nhấn xóc'}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// PHASE INDICATOR
+// ============================================================
+function PhaseIndicator({ phase }) {
+  const phases = [
+    {id:'jackpot',label:'QUAY SỐ'},
+    {id:'qualifier',label:'VÒNG LOẠI'},
+    {id:'bracketSeed',label:'XẾP BẢNG'},
+    {id:'bracket',label:'BẢNG ĐẤU'},
+    {id:'complete',label:'KẾT THÚC'},
+  ];
+  const currentIdx = phases.findIndex(p => p.id === phase);
+  return (
+    <div className="phase-steps">
+      {phases.map((p,i) => {
+        const isDone = i < currentIdx;
+        const isActive = i === currentIdx;
+        return (
+          <div key={p.id} className={`phase-step ${isDone?'done':''} ${isActive?'active':''}`}>
+            <div className="phase-dot">{isDone?'✓':i+1}</div>
+            <div className="phase-label">{p.label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================
+// BRACKET MATCH BOX
+// ============================================================
+function BracketMatchBox({ match, isAdmin, currentPlayerId }) {
+  if (!match) return null;
+  const p1 = match.p1, p2 = match.p2;
+  const isActive = match.status === 'active';
+  const isComplete = match.status === 'complete';
+  const isBye = match.isBye;
+  const canInteract = isAdmin || (currentPlayerId && (p1?.id===currentPlayerId || p2?.id===currentPlayerId));
+
+  const renderPlayer = (player, lane, score, isWinner, isLoser) => {
+    if (!player) return <div className="match-player" style={{color:'var(--text-dim)',fontStyle:'italic',fontSize:'.8rem'}}>Chờ...</div>;
+    if (player==='BYE') return <div className="match-player bye">🏆 BYE (tự thắng)</div>;
+    return (
+      <div className={`match-player ${isWinner?'winner':''} ${isLoser?'loser':''}`}>
+        <span className="match-number-badge">{player.jackpotNumber||'??'}</span>
+        <span style={{flex:1,fontSize:'.82rem',fontWeight:600}}>{player.name}</span>
+        {lane && <span className={`lane-badge lane-${lane}`} style={{fontSize:'.65rem',padding:'1px 5px'}}>L{lane}</span>}
+        {score!==null&&score!==undefined && <span className="match-score" style={{color:isWinner?'var(--gold)':'var(--text-dim)'}}>{score}</span>}
+        {isWinner && <span>🏆</span>}
+      </div>
+    );
+  };
+
+  return (
+    <div className={`match-box ${isActive?'active':''} ${isComplete?'completed':''}`} style={{minWidth:170,maxWidth:200}}>
+      {isBye&&p1 ? (
+        <>{renderPlayer(p1,match.p1Lane,match.p1Score,true,false)}{renderPlayer('BYE',null,null,false,false)}</>
+      ) : (
+        <>
+          {renderPlayer(p1,match.p1Lane,match.p1Score,match.winnerId===p1?.id,match.loserId===p1?.id)}
+          <div style={{height:1,background:'var(--border)'}}/>
+          {renderPlayer(p2,match.p2Lane,match.p2Score,match.winnerId===p2?.id,match.loserId===p2?.id)}
+        </>
+      )}
+      {isActive&&canInteract && (
+        <div style={{padding:'6px 8px',background:'var(--bg4)',borderTop:'1px solid rgba(245,197,24,.19)',display:'flex',justifyContent:'center'}}>
+          <span style={{fontSize:'.65rem',color:'var(--gold)',fontFamily:'Share Tech Mono'}}>▶ ĐANG ĐẤU</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// MATCH DETAIL MODAL
+// ============================================================
+function MatchDetailModal({ match, isAdmin, onClose, onComplete, currentPlayerId, toastFn }) {
+  const [p1Lane, setP1Lane] = useState(match.p1Lane);
+  const [p2Lane, setP2Lane] = useState(match.p2Lane);
+  const [p1Score, setP1Score] = useState(match.p1Score);
+  const [p2Score, setP2Score] = useState(match.p2Score);
+  const [p1DiceLocked, setP1DiceLocked] = useState(match.p1Lane!==null);
+  const [p2DiceLocked, setP2DiceLocked] = useState(match.p2Lane!==null);
+
+  const p1 = match.p1, p2 = match.p2;
+  const isTwoPlayer = !!(p1&&p2&&p2!=='BYE');
+  // Unique lane logic: if p1 already picked a lane, p2 cannot pick same lane
+  const p2AllowedDice = isTwoPlayer
+    ? (p1DiceLocked ? [1,2,3].filter(v=>v!==p1Lane) : [1,2,3])
+    : [1,2,3];
+  const p1AllowedDice = isTwoPlayer
+    ? (p2DiceLocked ? [1,2,3].filter(v=>v!==p2Lane) : [1,2,3])
+    : [1,2,3];
+
+  const canP1Dice = isAdmin || currentPlayerId===p1?.id;
+  const canP2Dice = isAdmin || currentPlayerId===p2?.id;
+  const canScore = isAdmin;
+
+  const handleSubmit = () => {
+    if (!p1DiceLocked || (!match.isBye&&!p2DiceLocked)) { toastFn('⚠️ Cần xóc xúc xắc trước!','error'); return; }
+    if (p1Score===null||(!match.isBye&&p2Score===null)) { toastFn('⚠️ Cần nhập điểm!','error'); return; }
+    if (isTwoPlayer && p1Lane===p2Lane) { toastFn('⚠️ Hai người không được cùng lane!','error'); return; }
+    let winnerId, loserId;
+    if (match.isBye||!p2) { winnerId=p1?.id; loserId=null; }
+    else if (p1Score>p2Score) { winnerId=p1.id; loserId=p2.id; }
+    else if (p2Score>p1Score) { winnerId=p2.id; loserId=p1.id; }
+    else { toastFn('⚠️ Điểm bằng nhau! Admin chọn người thắng.','error'); return; }
+    onComplete({...match,p1Lane,p2Lane,p1Score,p2Score,winnerId,loserId,status:'complete'});
+    onClose();
+  };
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:20}}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--gold)',borderRadius:16,padding:24,maxWidth:480,width:'100%',maxHeight:'90vh',overflowY:'auto',boxShadow:'0 0 40px rgba(245,197,24,.19)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <div className="section-header" style={{marginBottom:0}}>⚔️ CHI TIẾT VÁN ĐẤU</div>
+          <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+          {/* P1 */}
+          <div style={{background:'var(--bg3)',borderRadius:10,padding:14,border:'1px solid var(--border)'}}>
+            <div style={{fontWeight:700,marginBottom:8,fontSize:'.9rem'}}>
+              <span className="badge badge-gold" style={{marginRight:6}}>{p1?.jackpotNumber||'??'}</span>
+              {p1?.name||'Chờ...'}
+            </div>
+            {!match.isBye&&p1&&(
+              <>
+                <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:8}}>XÓC XÚC XẮC:</div>
+                <DiceRoller
+                  allowedValues={p1DiceLocked ? [p1Lane] : p1AllowedDice}
+                  onResult={v=>{setP1Lane(v);setP1DiceLocked(true);}}
+                  disabled={!canP1Dice||p1DiceLocked}
+                  locked={p1DiceLocked}
+                  lockedValue={p1Lane}
+                />
+                {canScore&&(
+                  <div style={{marginTop:12}}>
+                    <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:6}}>ĐIỂM:</div>
+                    <div style={{display:'flex',gap:6}}>
+                      {[0,1,2,3].map(s=>(
+                        <button key={s} className={`score-btn ${p1Score===s?'selected':''}`} onClick={()=>setP1Score(s)}>{s}</button>
                       ))}
                     </div>
-                    {user.role === 'admin' && tournament.players.length >= 2 && (
-                      <button className="btn btn-gold" style={{ width: '100%', marginTop: '20px' }} onClick={() => setTournament(t => ({ ...t, phase: 'jackpot' }))}>KHÓA DANH SÁCH & QUAY ID</button>
-                    )}
                   </div>
                 )}
-
-                {tournament.phase === 'jackpot' && (
-                  <div className="match-grid">
-                    {tournament.players.map(p => (
-                      <div key={p.id} className="card" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{p.name}</div>
-                        <div style={{ fontFamily: 'Orbitron', fontSize: '2rem', color: 'var(--gold)', margin: '10px 0' }}>{p.jackpotId || '??'}</div>
-                        {!p.jackpotId && (user.role === 'admin' || user.name === p.name) && (
-                          <button className="btn btn-gold" onClick={() => {
-                            const num = Math.floor(Math.random() * 90 + 10);
-                            setTournament(t => ({ ...t, players: t.players.map(x => x.id === p.id ? { ...x, jackpotId: num } : x) }));
-                          }}>QUAY ID</button>
-                        )}
-                      </div>
-                    ))}
-                    {user.role === 'admin' && tournament.players.every(p => p.jackpotId) && (
-                      <button className="btn btn-gold" style={{ gridColumn: '1/-1' }} onClick={startQualifiers}>BẮT ĐẦU VÒNG LOẠI</button>
-                    )}
+                {!canScore&&p1Score!==null&&(
+                  <div style={{marginTop:8}}>
+                    <span className="orbitron text-gold" style={{fontSize:'1.2rem',fontWeight:900}}>{p1Score}</span>
+                    <span className="text-dim text-xs"> điểm</span>
                   </div>
                 )}
-              </div>
+              </>
             )}
-
-            {activeTab === 'play' && (
-              <div className="match-grid">
-                {tournament.matches.map((m, idx) => (
-                  <div key={m.id} className={`match-box ${!m.isDone ? 'active' : ''}`}>
-                    <div className="match-header">
-                       <span>VÁN {idx + 1}</span>
-                       <span>{m.isDone ? 'HOÀN TẤT' : 'ĐANG ĐUA'}</span>
+          </div>
+          {/* P2 */}
+          <div style={{background:'var(--bg3)',borderRadius:10,padding:14,border:'1px solid var(--border)'}}>
+            {match.isBye ? (
+              <div style={{textAlign:'center',color:'var(--cyan)',padding:'20px 0'}}>🏆 BYE<br/><span className="text-dim text-xs">Tự động thắng</span></div>
+            ) : (
+              <>
+                <div style={{fontWeight:700,marginBottom:8,fontSize:'.9rem'}}>
+                  <span className="badge badge-gold" style={{marginRight:6}}>{p2?.jackpotNumber||'??'}</span>
+                  {p2?.name||'Chờ...'}
+                </div>
+                <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:8}}>XÓC XÚC XẮC:</div>
+                <DiceRoller
+                  allowedValues={p2DiceLocked ? [p2Lane] : p2AllowedDice}
+                  onResult={v=>{setP2Lane(v);setP2DiceLocked(true);}}
+                  disabled={!canP2Dice||p2DiceLocked}
+                  locked={p2DiceLocked}
+                  lockedValue={p2Lane}
+                />
+                {canScore&&(
+                  <div style={{marginTop:12}}>
+                    <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:6}}>ĐIỂM:</div>
+                    <div style={{display:'flex',gap:6}}>
+                      {[0,1,2,3].map(s=>(
+                        <button key={s} className={`score-btn ${p2Score===s?'selected':''}`} onClick={()=>setP2Score(s)}>{s}</button>
+                      ))}
                     </div>
-                    {m.players.map(p => (
-                      <div key={p.id} className="player-row">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span className={`lane-badge lane-${p.lane}`}>{p.lane || '?'}</span>
-                          <span>{p.name}</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          {!p.lane && (user.role === 'admin' || user.name === p.name) && (
-                            <div className="dice-btn" onClick={() => rollLane(m.id, p.id)}>🎲</div>
-                          )}
-                          {user.role === 'admin' && !m.isDone ? (
-                            <input className="score-input" type="number" onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              setTournament(t => ({
-                                ...t,
-                                matches: t.matches.map(mx => mx.id === m.id ? {
-                                  ...mx,
-                                  players: mx.players.map(px => px.id === p.id ? { ...px, matchScore: val } : px)
-                                } : mx)
-                              }));
-                            }} />
-                          ) : <span style={{ fontWeight: 'bold' }}>{p.matchScore}</span>}
-                        </div>
-                      </div>
-                    ))}
-                    {user.role === 'admin' && !m.isDone && (
-                      <button className="btn btn-gold" style={{ width: '100%', borderRadius: 0 }} onClick={() => submitMatch(m.id)}>CHỐT ĐIỂM</button>
-                    )}
                   </div>
-                ))}
-                {user.role === 'admin' && tournament.phase === 'qualifier' && tournament.matches.every(m => m.isDone) && (
-                  <button className="btn btn-gold" style={{ gridColumn: '1/-1' }} onClick={finalizeQualifiers}>KẾT THÚC VÒNG LOẠI</button>
                 )}
-              </div>
+                {!canScore&&p2Score!==null&&(
+                  <div style={{marginTop:8}}>
+                    <span className="orbitron text-gold" style={{fontSize:'1.2rem',fontWeight:900}}>{p2Score}</span>
+                    <span className="text-dim text-xs"> điểm</span>
+                  </div>
+                )}
+              </>
             )}
-
-            {activeTab === 'rank' && (
-              <div className="card">
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ color: 'var(--gold)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '10px' }}>ID</th>
-                      <th>RACER</th>
-                      <th>ĐIỂM</th>
-                      <th>TRẠNG THÁI</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tournament.players.sort((a,b) => b.totalScore - a.totalScore).map(p => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: p.status === 'out' ? 0.4 : 1 }}>
-                        <td style={{ padding: '10px', fontFamily: 'Orbitron' }}>{p.jackpotId}</td>
-                        <td style={{ fontWeight: 'bold' }}>{p.name}</td>
-                        <td style={{ color: 'var(--gold)', fontWeight: 'bold' }}>{p.totalScore}</td>
-                        <td>{p.status === 'out' ? <span className="out-stamp">OUT</span> : <span style={{ color: 'var(--green)', fontSize: '0.7rem' }}>ACTIVE</span>}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
+          </div>
+        </div>
+        {isAdmin&&(
+          <button className="btn btn-gold w-full" onClick={handleSubmit} disabled={!p1DiceLocked||(!match.isBye&&!p2DiceLocked)}>
+            ✅ XÁC NHẬN KẾT QUẢ
+          </button>
+        )}
+        {!isAdmin&&(
+          <div className="text-center text-dim text-sm" style={{marginTop:8}}>🔒 Chỉ Admin mới có thể xác nhận kết quả</div>
         )}
       </div>
     </div>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+// ============================================================
+// QUALIFIER DICE MODAL — unique lane per group
+// ============================================================
+function QualifierDiceModal({ group, roundIdx, groupIdx, currentPlayerId, isAdmin, onDiceResult, onClose }) {
+  // Build local lane state
+  const [lanes, setLanes] = useState({...group.lanes});
+
+  const usedLanes = Object.values(lanes);
+  const maxLanes = group.players.length; // 2 or 3
+
+  const handleRoll = (playerId, val) => {
+    setLanes(prev => ({...prev, [playerId]: val}));
+    onDiceResult(roundIdx, groupIdx, playerId, val);
+  };
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:20}}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--cyan)',borderRadius:16,padding:24,maxWidth:440,width:'100%',boxShadow:'0 0 40px rgba(0,212,255,.19)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <div className="section-header" style={{marginBottom:0,color:'var(--cyan)'}}>🎲 XÓC XÚC XẮC LANE</div>
+          <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
+        </div>
+        <div className="text-xs text-dim mono mb-3" style={{letterSpacing:2}}>Mỗi xe 1 lane riêng — không trùng</div>
+        {group.players.map(p => {
+          const myLane = lanes[p.id];
+          const locked = myLane !== undefined;
+          const canRoll = isAdmin || currentPlayerId === p.id;
+          const available = [1,2,3].slice(0, maxLanes).filter(v => !usedLanes.includes(v) || v === myLane);
+          return (
+            <div key={p.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
+              <span className="badge badge-gold" style={{minWidth:40}}>{p.jackpotNumber}</span>
+              <span style={{fontWeight:600,flex:1,minWidth:80}}>{p.name}</span>
+              <DiceRoller
+                allowedValues={locked ? [myLane] : available}
+                onResult={v => handleRoll(p.id, v)}
+                disabled={!canRoll || locked || group.complete}
+                locked={locked}
+                lockedValue={myLane}
+              />
+            </div>
+          );
+        })}
+        <div style={{marginTop:16,textAlign:'center'}}>
+          <button className="btn btn-outline btn-sm" onClick={onClose}>Đóng</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  // Auth state
+  const [role, setRole] = useState(null);
+  const [playerName, setPlayerName] = useState('');
+  const [adminPass, setAdminPass] = useState('');
+  const [passError, setPassError] = useState(false);
+
+  // Room state
+  const [roomName, setRoomName] = useState('');
+  const [roomInput, setRoomInput] = useState('');
+  const [tournament, setTournament] = useState(null);
+
+  // Guest car registration
+  const [guestCars, setGuestCars] = useState({}); // { guestName: [{id,name,status:'pending'|'approved',ownerName}] }
+  const [carInput, setCarInput] = useState('');
+
+  // UI
+  const [toasts, setToasts] = useState([]);
+  const [activeTab, setActiveTab] = useState('players');
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [showNewTournament, setShowNewTournament] = useState(false);
+  const [showDiceModal, setShowDiceModal] = useState(null); // {roundIdx, groupIdx}
+
+  // New tournament form
+  const [formName, setFormName] = useState('');
+  const [formLocked, setFormLocked] = useState(false);
+  const [qualifierRounds, setQualifierRounds] = useState(3);
+
+  // Bracket seeding
+  const [seedingPairs, setSeedingPairs] = useState([]);
+  const [seedingPlayers, setSeedingPlayers] = useState([]);
+  const [spinningPair, setSpinningPair] = useState(false);
+
+  const toast = useCallback((msg, type='info') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, {id, msg, type}]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id!==id)), 3200);
+  }, []);
+
+  // ---- Persist session ----
+  useEffect(() => {
+    const saved = loadSession();
+    if (saved) {
+      setRole(saved.role);
+      setPlayerName(saved.playerName||'');
+      setRoomName(saved.roomName||'');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (role) {
+      saveSession({ role, playerName, roomName });
+    }
+  }, [role, playerName, roomName]);
+
+  // ---- Persist room/tournament ----
+  useEffect(() => {
+    if (tournament || roomName) {
+      saveRoom({ roomName, tournament, guestCars });
+    }
+  }, [tournament, roomName, guestCars]);
+
+  // Load room data when joining
+  const loadRoomData = (name) => {
+    const saved = loadRoom();
+    if (saved && saved.roomName === name) {
+      setTournament(saved.tournament || null);
+      setGuestCars(saved.guestCars || {});
+      return true;
+    }
+    return false;
+  };
+
+  // Sync room data periodically (simple polling for same-device multi-tab)
+  useEffect(() => {
+    if (!roomName) return;
+    const iv = setInterval(() => {
+      const saved = loadRoom();
+      if (saved && saved.roomName === roomName) {
+        // Only sync if data changed (shallow check)
+        const tJSON = JSON.stringify(saved.tournament);
+        const cJSON = JSON.stringify(saved.guestCars);
+        setTournament(prev => JSON.stringify(prev)!==tJSON ? saved.tournament : prev);
+        setGuestCars(prev => JSON.stringify(prev)!==cJSON ? (saved.guestCars||{}) : prev);
+      }
+    }, 2000);
+    return () => clearInterval(iv);
+  }, [roomName]);
+
+  // ---- Auth ----
+  const loginGuest = () => {
+    if (!playerName.trim()) { toast('⚠️ Nhập tên của bạn!','error'); return; }
+    setRole('guest');
+  };
+
+  const loginAdmin = () => {
+    if (adminPass === 'Phuong090') {
+      setRole('admin');
+      setPlayerName('Admin');
+    } else {
+      setPassError(true);
+      setTimeout(() => setPassError(false), 600);
+      toast('❌ Sai mật khẩu!','error');
+    }
+  };
+
+  const logout = () => {
+    clearSession();
+    setRole(null); setPlayerName(''); setAdminPass(''); setRoomName('');
+    setTournament(null); setGuestCars({});
+    setShowNewTournament(false); setSeedingPairs([]); setSeedingPlayers([]);
+    setFormName(''); setFormLocked(false);
+  };
+
+  // ---- Room join ----
+  const joinRoom = () => {
+    if (!roomInput.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
+    const found = loadRoomData(roomInput.trim());
+    if (!found) { toast(`⚠️ Không tìm thấy phòng "${roomInput.trim()}"!`,'error'); return; }
+    setRoomName(roomInput.trim());
+    toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
+    setActiveTab('players');
+  };
+
+  const createRoom = () => {
+    if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
+    const name = formName.trim();
+    setRoomName(name);
+    saveRoom({ roomName: name, tournament: null, guestCars: {} });
+    toast(`✅ Phòng "${name}" đã tạo!`,'success');
+    setShowNewTournament(true);
+  };
+
+  // ---- Guest car registration ----
+  const myApprovedCars = () => {
+    if (!playerName || role!=='guest') return [];
+    return (guestCars[playerName]||[]).filter(c=>c.status==='approved');
+  };
+
+  const registerCar = () => {
+    if (!carInput.trim()) { toast('⚠️ Nhập tên xe!','error'); return; }
+    const existing = guestCars[playerName]||[];
+    if (existing.length >= 3) { toast('⚠️ Tối đa 3 xe mỗi người!','error'); return; }
+    if (existing.some(c=>c.name.toLowerCase()===carInput.trim().toLowerCase())) {
+      toast('⚠️ Tên xe đã tồn tại!','error'); return;
+    }
+    const newCar = { id:'car_'+Date.now(), name:carInput.trim(), status:'pending', ownerName:playerName };
+    const updated = { ...guestCars, [playerName]: [...existing, newCar] };
+    setGuestCars(updated);
+    saveRoom({ roomName, tournament, guestCars: updated });
+    setCarInput('');
+    toast(`🚗 Đăng ký xe "${newCar.name}" thành công! Chờ Admin duyệt.`,'success');
+  };
+
+  const adminApproveCar = (ownerName, carId) => {
+    const updated = {
+      ...guestCars,
+      [ownerName]: (guestCars[ownerName]||[]).map(c => c.id===carId ? {...c,status:'approved'} : c)
+    };
+    setGuestCars(updated);
+    saveRoom({ roomName, tournament, guestCars: updated });
+    toast('✅ Đã duyệt xe!','success');
+  };
+
+  const adminEditCar = (ownerName, carId, newName) => {
+    if (!newName.trim()) return;
+    const updated = {
+      ...guestCars,
+      [ownerName]: (guestCars[ownerName]||[]).map(c => c.id===carId ? {...c,name:newName.trim()} : c)
+    };
+    setGuestCars(updated);
+    saveRoom({ roomName, tournament, guestCars: updated });
+    toast('✅ Đã sửa tên xe!','success');
+  };
+
+  const adminDeleteCar = (ownerName, carId) => {
+    const updated = {
+      ...guestCars,
+      [ownerName]: (guestCars[ownerName]||[]).filter(c => c.id!==carId)
+    };
+    setGuestCars(updated);
+    saveRoom({ roomName, tournament, guestCars: updated });
+    toast('🗑️ Đã xóa xe!','success');
+  };
+
+  // Get all approved cars (as player list for tournament)
+  const allApprovedCars = () => {
+    const result = [];
+    Object.entries(guestCars).forEach(([owner, cars]) => {
+      cars.filter(c=>c.status==='approved').forEach(c => {
+        result.push({ id:c.id, name:c.name, ownerName:owner, jackpotNumber:null, qualifierScore:0, status:'active' });
+      });
+    });
+    return result;
+  };
+
+  // ---- Tournament creation (admin) ----
+  const createTournament = () => {
+    const cars = allApprovedCars();
+    if (cars.length < 4) { toast('⚠️ Cần ít nhất 4 xe được duyệt!','error'); return; }
+    const count = cars.length;
+    const target = getBracketTarget(count);
+    const hasQualifier = needsQualifier(count);
+    const t = {
+      name: roomName,
+      phase: 'jackpot',
+      players: cars,
+      qualifierRounds: hasQualifier ? qualifierRounds : 0,
+      qualifierData: [],
+      currentQualifierRound: 0,
+      bracketTarget: target,
+      hasQualifier,
+      winnersRounds: [], losersRounds: [],
+      grandFinal: null, grandFinalReset: null,
+      matchHistory: {}, champion: null,
+    };
+    setTournament(t);
+    setShowNewTournament(false);
+    setActiveTab('players');
+    saveRoom({ roomName, tournament: t, guestCars });
+    toast(`🏆 Giải đấu bắt đầu với ${count} xe!`,'success');
+  };
+
+  const setTournamentAndSave = (fn) => {
+    setTournament(prev => {
+      const next = typeof fn === 'function' ? fn(prev) : fn;
+      saveRoom({ roomName, tournament: next, guestCars });
+      return next;
+    });
+  };
+
+  // ---- Jackpot ----
+  const assignJackpotNumber = (playerId, number) => {
+    setTournamentAndSave(prev => ({
+      ...prev,
+      players: prev.players.map(p => p.id===playerId ? {...p, jackpotNumber:number} : p)
+    }));
+    toast(`🎰 Số ${number} đã được gán!`,'success');
+  };
+
+  const allJackpotsAssigned = tournament?.players.every(p => p.jackpotNumber!==null);
+
+  const proceedFromJackpot = () => {
+    if (!allJackpotsAssigned) { toast('⚠️ Tất cả xe phải quay số!','error'); return; }
+    if (tournament.hasQualifier) {
+      initQualifierRound(tournament, 1);
+      setTournamentAndSave(prev => ({...prev, phase:'qualifier'}));
+    } else {
+      setTournamentAndSave(prev => ({...prev, phase:'bracketSeed'}));
+    }
+    toast('✅ Chuyển sang giai đoạn tiếp!','success');
+  };
+
+  // ---- Qualifier ----
+  const initQualifierRound = (t, roundNum) => {
+    const activePlayers = t.players.filter(p => p.status==='active');
+    const shuffled = shuffle(activePlayers);
+    const groups = [];
+    let i = 0;
+    // Ensure every group has at least 2 players
+    while (i < shuffled.length) {
+      const remaining = shuffled.length - i;
+      if (remaining === 0) break;
+      if (remaining === 1) {
+        // Merge lone player into last group (3-player group)
+        if (groups.length > 0) {
+          groups[groups.length-1] = [...groups[groups.length-1], shuffled[i]];
+        } else {
+          // Only 1 player total — shouldn't happen if cars >= 4
+          groups.push([shuffled[i]]);
+        }
+        i++;
+      } else if (remaining === 2) {
+        groups.push([shuffled[i], shuffled[i+1]]);
+        i += 2;
+      } else if (remaining === 4) {
+        // Split into two 2-player groups (not 3+1)
+        groups.push([shuffled[i], shuffled[i+1]]);
+        groups.push([shuffled[i+2], shuffled[i+3]]);
+        i += 4;
+      } else {
+        groups.push([shuffled[i], shuffled[i+1], shuffled[i+2]]);
+        i += 3;
+      }
+    }
+
+    const roundData = {
+      round: roundNum,
+      groups: groups.map(g => ({ players:g, lanes:{}, scores:{}, complete:false }))
+    };
+    setTournamentAndSave(prev => ({
+      ...prev,
+      qualifierData: [...(prev.qualifierData||[]), roundData],
+      currentQualifierRound: roundNum,
+      phase: 'qualifier',
+    }));
+  };
+
+  const handleQualifierDice = (roundIdx, groupIdx, playerId, value) => {
+    setTournamentAndSave(prev => {
+      const newData = prev.qualifierData.map((rd,ri) => {
+        if (ri!==roundIdx) return rd;
+        return {
+          ...rd,
+          groups: rd.groups.map((g,gi) => {
+            if (gi!==groupIdx) return g;
+            // Unique lane: remove any other player who had this lane
+            const newLanes = {...g.lanes};
+            Object.keys(newLanes).forEach(pid => { if (newLanes[pid]===value && pid!==playerId) delete newLanes[pid]; });
+            newLanes[playerId] = value;
+            return {...g, lanes:newLanes};
+          })
+        };
+      });
+      return {...prev, qualifierData:newData};
+    });
+  };
+
+  const handleQualifierScore = (roundIdx, groupIdx, playerId, score) => {
+    setTournamentAndSave(prev => {
+      const newData = prev.qualifierData.map((rd,ri) => {
+        if (ri!==roundIdx) return rd;
+        return {
+          ...rd,
+          groups: rd.groups.map((g,gi) => {
+            if (gi!==groupIdx) return g;
+            return {...g, scores:{...g.scores, [playerId]:score}};
+          })
+        };
+      });
+      return {...prev, qualifierData:newData};
+    });
+  };
+
+  const completeQualifierGroup = (roundIdx, groupIdx) => {
+    setTournamentAndSave(prev => {
+      const group = prev.qualifierData[roundIdx].groups[groupIdx];
+      for (const p of group.players) {
+        if (group.lanes[p.id]===undefined) { toast('⚠️ Chưa xóc xúc xắc!','error'); return prev; }
+        if (group.scores[p.id]===undefined) { toast('⚠️ Chưa nhập điểm!','error'); return prev; }
+      }
+      // Check unique lanes
+      const laneVals = group.players.map(p => group.lanes[p.id]);
+      if (new Set(laneVals).size !== laneVals.length) { toast('⚠️ Có xe trùng lane!','error'); return prev; }
+
+      let updatedPlayers = prev.players.map(p => {
+        const s = group.scores[p.id];
+        if (s!==undefined) return {...p, qualifierScore:(p.qualifierScore||0)+s};
+        return p;
+      });
+      const newData = prev.qualifierData.map((rd,ri) => {
+        if (ri!==roundIdx) return rd;
+        return {...rd, groups:rd.groups.map((g,gi) => gi!==groupIdx ? g : {...g,complete:true})};
+      });
+      return {...prev, qualifierData:newData, players:updatedPlayers};
+    });
+    toast('✅ Ván đấu hoàn thành!','success');
+  };
+
+  const isQualifierRoundComplete = (roundIdx) => {
+    if (!tournament?.qualifierData[roundIdx]) return false;
+    return tournament.qualifierData[roundIdx].groups.every(g => g.complete);
+  };
+
+  const advanceQualifierRound = () => {
+    const nextRound = tournament.currentQualifierRound + 1;
+    if (nextRound <= tournament.qualifierRounds) {
+      initQualifierRound(tournament, nextRound);
+      toast(`✅ Bắt đầu vòng loại ${nextRound}!`,'success');
+    } else {
+      finalizeQualifiers();
+    }
+  };
+
+  const finalizeQualifiers = () => {
+    const target = tournament.bracketTarget;
+    const sorted = [...tournament.players].sort((a,b) => (b.qualifierScore||0)-(a.qualifierScore||0));
+    const qualified = sorted.slice(0,target).map(p => ({...p,status:'active'}));
+    const eliminated = sorted.slice(target).map(p => ({...p,status:'out'}));
+    setTournamentAndSave(prev => ({...prev, players:[...qualified,...eliminated], phase:'bracketSeed'}));
+    toast(`🏆 ${target} xe vào bảng đấu chính!`,'success');
+  };
+
+  // ---- Bracket seeding ----
+  useEffect(() => {
+    if (tournament?.phase==='bracketSeed') {
+      const qualified = tournament.players.filter(p => p.status==='active');
+      setSeedingPlayers(shuffle(qualified));
+      setSeedingPairs([]);
+    }
+  }, [tournament?.phase]);
+
+  const spinNextPair = () => {
+    if (seedingPlayers.length < 2 || spinningPair) return;
+    setSpinningPair(true);
+    setTimeout(() => {
+      const remaining = [...seedingPlayers];
+      const idx1 = Math.floor(Math.random()*remaining.length);
+      const p1 = remaining.splice(idx1,1)[0];
+      const idx2 = Math.floor(Math.random()*remaining.length);
+      const p2 = remaining.splice(idx2,1)[0];
+      setSeedingPairs(prev => [...prev,[p1,p2]]);
+      setSeedingPlayers(remaining);
+      setSpinningPair(false);
+      toast(`🎰 Cặp đấu: ${p1.name} vs ${p2.name}`,'success');
+    }, 1500);
+  };
+
+  const confirmBracketSeed = () => {
+    const target = tournament.bracketTarget;
+    const pairs = [...seedingPairs];
+    if (seedingPlayers.length===1) pairs.push([seedingPlayers[0], null]);
+
+    const makeMatch = (p1,p2,round,bracket,position) => ({
+      matchId:`${bracket}_R${round}_P${position}`,
+      p1:p1||null, p2:p2||null,
+      p1Lane:null, p2Lane:null, p1Score:null, p2Score:null,
+      winnerId:null, loserId:null,
+      status:(p1||p2)?((!p1||!p2)?'bye':'pending'):'pending',
+      round, bracket, position,
+      isBye:!!((p1&&!p2)||(!p1&&p2)),
+    });
+
+    const wR1 = pairs.map((pair,i) => makeMatch(pair[0],pair[1],1,'W',i));
+    const wR1Resolved = wR1.map(m => {
+      if (m.isBye) {
+        const winner = m.p1||m.p2;
+        return {...m, winnerId:winner?.id, status:'complete', p1Score:m.p1?3:null, p2Score:m.p2?3:null};
+      }
+      return {...m, status:'active'};
+    });
+
+    const totalWRounds = Math.log2(target);
+    const allWRounds = [wR1Resolved];
+    let prevCount = wR1Resolved.length;
+    for (let r=2; r<=totalWRounds; r++) {
+      prevCount = Math.ceil(prevCount/2);
+      allWRounds.push(Array.from({length:prevCount},(_,i) => makeMatch(null,null,r,'W',i)));
+    }
+
+    const totalLBRounds = (totalWRounds-1)*2;
+    const allLRounds = [];
+    let lbCount = target/4;
+    for (let r=1; r<=totalLBRounds; r++) {
+      allLRounds.push(Array.from({length:Math.max(1,lbCount)},(_,i) => makeMatch(null,null,r,'L',i)));
+      if (r%2===0&&lbCount>1) lbCount = Math.ceil(lbCount/2);
+    }
+
+    const wR1Losers = wR1Resolved.filter(m=>m.loserId).map(m=>m.p1?.id===m.loserId?m.p1:m.p2).filter(Boolean);
+    const lbR1 = shuffle(wR1Losers);
+    for (let i=0; i<allLRounds[0]?.length&&i*2<lbR1.length; i++) {
+      allLRounds[0][i] = {...allLRounds[0][i], p1:lbR1[i*2]||null, p2:lbR1[i*2+1]||null,
+        status:(lbR1[i*2]&&lbR1[i*2+1])?'active':'pending'};
+    }
+
+    const grandFinal = makeMatch(null,null,1,'GF',0);
+    setTournamentAndSave(prev => ({...prev, phase:'bracket', winnersRounds:allWRounds, losersRounds:allLRounds, grandFinal, matchHistory:{}}));
+    toast('🏆 Bảng đấu đã được tạo!','success');
+    setActiveTab('bracket');
+  };
+
+  // ---- Match complete ----
+  const handleMatchComplete = (updatedMatch) => {
+    setTournamentAndSave(prev => {
+      let newWR = prev.winnersRounds.map(r=>r.map(m=>m.matchId===updatedMatch.matchId?updatedMatch:m));
+      let newLR = prev.losersRounds.map(r=>r.map(m=>m.matchId===updatedMatch.matchId?updatedMatch:m));
+      let newGF = prev.grandFinal?.matchId===updatedMatch.matchId?updatedMatch:prev.grandFinal;
+      let newGFR = prev.grandFinalReset?.matchId===updatedMatch.matchId?updatedMatch:prev.grandFinalReset;
+
+      const winner = prev.players.find(p=>p.id===updatedMatch.winnerId);
+      const loser = prev.players.find(p=>p.id===updatedMatch.loserId);
+      let newHistory = {...prev.matchHistory};
+      if (winner&&loser) {
+        newHistory[winner.id] = [...(newHistory[winner.id]||[]),loser.id];
+        newHistory[loser.id] = [...(newHistory[loser.id]||[]),winner.id];
+      }
+
+      const wRoundIdx = newWR.findIndex(r=>r.some(m=>m.matchId===updatedMatch.matchId));
+      if (wRoundIdx!==-1) {
+        const matchIdx = newWR[wRoundIdx].findIndex(m=>m.matchId===updatedMatch.matchId);
+        const nextRoundIdx = wRoundIdx+1;
+        if (nextRoundIdx<newWR.length&&winner) {
+          const nextMatchIdx = Math.floor(matchIdx/2);
+          const slot = matchIdx%2===0?'p1':'p2';
+          newWR = newWR.map((r,ri)=>ri!==nextRoundIdx?r:r.map((m,mi)=>{
+            if (mi!==nextMatchIdx) return m;
+            const updated = {...m,[slot]:winner};
+            if (updated.p1&&updated.p2) updated.status='active';
+            return updated;
+          }));
+        } else if (nextRoundIdx>=newWR.length&&winner) {
+          newGF = {...newGF, p1:winner};
+          if (newGF.p1&&newGF.p2) newGF.status='active';
+        }
+        if (loser&&newLR.length>0) {
+          const lbTargetRound = wRoundIdx*2;
+          const lbRoundIdx = Math.min(lbTargetRound,newLR.length-1);
+          let placed = false;
+          newLR = newLR.map((r,ri)=>{
+            if (ri!==lbRoundIdx||placed) return r;
+            return r.map(m=>{
+              if (placed) return m;
+              if (!m.p1||!m.p2) { placed=true; const slot=!m.p1?'p1':'p2'; const updated={...m,[slot]:loser}; if (updated.p1&&updated.p2) updated.status='active'; return updated; }
+              return m;
+            });
+          });
+        }
+      }
+
+      const lRoundIdx = newLR.findIndex(r=>r.some(m=>m.matchId===updatedMatch.matchId));
+      if (lRoundIdx!==-1) {
+        const matchIdx = newLR[lRoundIdx].findIndex(m=>m.matchId===updatedMatch.matchId);
+        const nextLBRound = lRoundIdx+1;
+        if (nextLBRound<newLR.length&&winner) {
+          const nextMatchIdx = Math.floor(matchIdx/2);
+          const slot = matchIdx%2===0?'p1':'p2';
+          newLR = newLR.map((r,ri)=>ri!==nextLBRound?r:r.map((m,mi)=>{
+            if (mi!==nextMatchIdx) return m;
+            const updated = {...m,[slot]:winner};
+            if (updated.p1&&updated.p2) updated.status='active';
+            return updated;
+          }));
+        } else if (nextLBRound>=newLR.length&&winner) {
+          newGF = {...newGF, p2:winner};
+          if (newGF.p1&&newGF.p2) newGF.status='active';
+        }
+      }
+
+      const isGF = prev.grandFinal?.matchId===updatedMatch.matchId;
+      const isGFR = prev.grandFinalReset?.matchId===updatedMatch.matchId;
+      if (isGF&&winner&&loser) {
+        const wbChampion = newGF?.p1;
+        if (winner.id===wbChampion?.id) {
+          return {...prev,winnersRounds:newWR,losersRounds:newLR,grandFinal:newGF,grandFinalReset:newGFR,matchHistory:newHistory,champion:winner,phase:'complete'};
+        } else {
+          const resetMatch = {matchId:'GF_RESET',p1:wbChampion,p2:winner,p1Lane:null,p2Lane:null,p1Score:null,p2Score:null,winnerId:null,loserId:null,status:'active',round:2,bracket:'GF',position:0,isBye:false};
+          return {...prev,winnersRounds:newWR,losersRounds:newLR,grandFinal:updatedMatch,grandFinalReset:resetMatch,matchHistory:newHistory};
+        }
+      }
+      if (isGFR&&winner) {
+        return {...prev,winnersRounds:newWR,losersRounds:newLR,grandFinal:newGF,grandFinalReset:updatedMatch,matchHistory:newHistory,champion:winner,phase:'complete'};
+      }
+
+      let updatedPlayers = prev.players.map(p => {
+        if (p.id===updatedMatch.loserId&&lRoundIdx!==-1) return {...p,status:'out'};
+        return p;
+      });
+      return {...prev,winnersRounds:newWR,losersRounds:newLR,grandFinal:newGF,grandFinalReset:newGFR,matchHistory:newHistory,players:updatedPlayers};
+    });
+  };
+
+  const isAdmin = role==='admin';
+  const existingNumbers = tournament?.players.filter(p=>p.jackpotNumber).map(p=>p.jackpotNumber)||[];
+  // Find cars owned by current guest
+  const myCarIds = role==='guest' ? (guestCars[playerName]||[]).filter(c=>c.status==='approved').map(c=>c.id) : [];
+  const currentPlayerForCar = (carId) => tournament?.players.find(p=>p.id===carId);
+
+  // ============================================================
+  // RENDER: LOGIN
+  // ============================================================
+  if (!role) {
+    return (
+      <>
+        <div className="login-screen">
+          <div className="login-logo">🏎️ MINI 4WD<br/>TOURNAMENT</div>
+          <div className="login-subtitle">TAMIYA RACING MANAGEMENT SYSTEM</div>
+          <div className="login-card">
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:24}}>
+              {/* Guest */}
+              <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:12,padding:20,transition:'all .2s'}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor='var(--cyan)'}
+                onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+                <div style={{textAlign:'center',marginBottom:12}}>
+                  <span style={{fontSize:'2.5rem'}}>👤</span>
+                  <div className="orbitron" style={{fontSize:'1rem',fontWeight:700,color:'var(--cyan)',marginTop:8}}>GUEST</div>
+                  <div className="text-dim text-xs" style={{marginTop:4}}>Đăng ký xe & xóc xúc xắc</div>
+                </div>
+                <input className="input" placeholder="Tên của bạn..." value={playerName}
+                  onChange={e=>setPlayerName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loginGuest()}
+                  style={{marginBottom:10,fontSize:'.9rem'}} />
+                <button className="btn btn-cyan w-full" onClick={loginGuest}>VÀO XEM</button>
+              </div>
+              {/* Admin */}
+              <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:12,padding:20,transition:'all .2s'}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor='var(--gold)'}
+                onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+                <div style={{textAlign:'center',marginBottom:12}}>
+                  <span style={{fontSize:'2.5rem'}}>👑</span>
+                  <div className="orbitron" style={{fontSize:'1rem',fontWeight:700,color:'var(--gold)',marginTop:8}}>ADMIN</div>
+                  <div className="text-dim text-xs" style={{marginTop:4}}>Toàn quyền điều hành</div>
+                </div>
+                <div style={{animation:passError?'shake .4s ease':'none'}}>
+                  <input className="input" type="password" placeholder="Mật khẩu..." value={adminPass}
+                    onChange={e=>setAdminPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loginAdmin()}
+                    style={{marginBottom:10,fontSize:'.9rem',borderColor:passError?'var(--red)':undefined}} />
+                </div>
+                <button className="btn btn-gold w-full" onClick={loginAdmin}>ĐĂNG NHẬP</button>
+              </div>
+            </div>
+            <div className="text-center text-dim text-xs" style={{fontFamily:'Share Tech Mono'}}>v3.0 · SGMS MINI 4WD CLUB</div>
+          </div>
+        </div>
+        <ToastContainer toasts={toasts}/>
+      </>
+    );
+  }
+
+  // ============================================================
+  // RENDER: ROOM SELECTION (logged in but no room)
+  // ============================================================
+  if (!roomName) {
+    return (
+      <>
+        <div className="app-header">
+          <div className="header-logo">🏎️ M4WD</div>
+          <div style={{flex:1}}/>
+          <span className={`header-badge ${role}`}>{role==='admin'?'👑 ADMIN':`👤 ${playerName}`}</span>
+          <button className="btn btn-outline btn-sm" onClick={logout}>Đăng xuất</button>
+        </div>
+        <div className="app-container" style={{padding:'40px 12px'}}>
+          <div style={{maxWidth:480,margin:'0 auto'}}>
+            <div className="card">
+              <div className="card-title">🚪 CHỌN PHÒNG</div>
+              {isAdmin ? (
+                <>
+                  <div className="mb-4">
+                    <label className="text-xs text-dim mono" style={{display:'block',marginBottom:6,letterSpacing:2}}>TẠO PHÒNG MỚI</label>
+                    <div style={{display:'flex',gap:8}}>
+                      <input className="input" placeholder="Tên phòng..." value={formName}
+                        onChange={e=>setFormName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&createRoom()}/>
+                      <button className="btn btn-gold" onClick={createRoom}>TẠO</button>
+                    </div>
+                  </div>
+                  <div className="divider"/>
+                  <div>
+                    <label className="text-xs text-dim mono" style={{display:'block',marginBottom:6,letterSpacing:2}}>VÀO PHÒNG SẴN CÓ</label>
+                    <div style={{display:'flex',gap:8}}>
+                      <input className="input" placeholder="Tên phòng..." value={roomInput}
+                        onChange={e=>setRoomInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&joinRoom()}/>
+                      <button className="btn btn-outline" onClick={joinRoom}>VÀO</button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-dim text-sm mb-4">Nhập tên phòng do Admin cung cấp để tham gia</div>
+                  <div style={{display:'flex',gap:8}}>
+                    <input className="input" placeholder="Tên phòng..." value={roomInput}
+                      onChange={e=>setRoomInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&joinRoom()}/>
+                    <button className="btn btn-cyan" onClick={joinRoom}>VÀO PHÒNG</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        <ToastContainer toasts={toasts}/>
+      </>
+    );
+  }
+
+  // ============================================================
+  // RENDER: MAIN APP (in room)
+  // ============================================================
+  const allCarsFlat = Object.entries(guestCars).flatMap(([owner,cars])=>cars.map(c=>({...c,ownerName:owner})));
+  const pendingCars = allCarsFlat.filter(c=>c.status==='pending');
+  const approvedCars = allCarsFlat.filter(c=>c.status==='approved');
+
+  return (
+    <>
+      {/* HEADER */}
+      <div className="app-header">
+        <div className="header-logo">🏎️ M4WD</div>
+        <div style={{fontSize:'.9rem',fontWeight:600,color:'var(--gold)'}}>{roomName}</div>
+        {tournament && <div style={{fontSize:'.8rem',color:'var(--text-dim)',marginLeft:4}}>· {tournament.name||''}</div>}
+        <div style={{flex:1}}/>
+        <span className={`header-badge ${role}`}>{role==='admin'?'👑 ADMIN':`👤 ${playerName}`}</span>
+        <button className="btn btn-outline btn-sm" onClick={logout}>Đăng xuất</button>
+      </div>
+
+      <div className="app-container" style={{padding:'16px 12px'}}>
+
+        {/* ADMIN: no tournament yet */}
+        {isAdmin && !tournament && (
+          <div style={{maxWidth:600,margin:'0 auto'}}>
+            {/* Car approvals */}
+            {pendingCars.length > 0 && (
+              <div className="card mb-4">
+                <div className="card-title">🚗 DUYỆT XE ĐĂNG KÝ ({pendingCars.length})</div>
+                {pendingCars.map(car => (
+                  <AdminCarRow key={car.id} car={car} onApprove={()=>adminApproveCar(car.ownerName,car.id)}
+                    onEdit={newName=>adminEditCar(car.ownerName,car.id,newName)}
+                    onDelete={()=>adminDeleteCar(car.ownerName,car.id)}/>
+                ))}
+              </div>
+            )}
+            {approvedCars.length > 0 && (
+              <div className="card mb-4">
+                <div className="card-title">✅ XE ĐÃ DUYỆT ({approvedCars.length})</div>
+                {approvedCars.map(car => (
+                  <AdminCarRow key={car.id} car={car} approved
+                    onEdit={newName=>adminEditCar(car.ownerName,car.id,newName)}
+                    onDelete={()=>adminDeleteCar(car.ownerName,car.id)}/>
+                ))}
+                {approvedCars.length < 4 && (
+                  <div className="badge badge-red mt-2">Cần ít nhất 4 xe để bắt đầu giải</div>
+                )}
+              </div>
+            )}
+            <div className="card">
+              <div className="card-title">🏆 BẮT ĐẦU GIẢI ĐẤU</div>
+              <div className="text-dim text-sm mb-4">{approvedCars.length} xe đã duyệt. Cần ít nhất 4 xe.</div>
+              {approvedCars.length >= 4 && needsQualifier(approvedCars.length) && (
+                <div style={{background:'var(--bg3)',borderRadius:10,padding:14,marginBottom:16}}>
+                  <div className="text-sm font-bold mb-2">Số vòng loại:</div>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <button className="btn btn-outline btn-sm" onClick={()=>setQualifierRounds(r=>Math.max(1,r-1))}>-</button>
+                    <span className="orbitron text-gold" style={{fontSize:'1.5rem',fontWeight:900,minWidth:40,textAlign:'center'}}>{qualifierRounds}</span>
+                    <button className="btn btn-outline btn-sm" onClick={()=>setQualifierRounds(r=>Math.min(10,r+1))}>+</button>
+                    <span className="text-dim text-sm">vòng</span>
+                  </div>
+                </div>
+              )}
+              <button className="btn btn-gold btn-lg w-full" onClick={createTournament} disabled={approvedCars.length<4}>
+                {approvedCars.length<4 ? `Cần thêm ${4-approvedCars.length} xe nữa` : '✅ BẮT ĐẦU GIẢI ĐẤU'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* GUEST: no tournament yet */}
+        {!isAdmin && !tournament && (
+          <div style={{maxWidth:480,margin:'40px auto'}}>
+            <div className="card mb-4">
+              <div className="card-title">🚗 ĐĂNG KÝ XE CỦA BẠN</div>
+              <div className="text-dim text-sm mb-4">
+                Tối đa 3 xe. Sau khi đăng ký Admin sẽ duyệt xe của bạn.
+              </div>
+              {(guestCars[playerName]||[]).map(car => (
+                <div key={car.id} className={car.status==='approved'?'approved-car':'pending-car'}>
+                  <span style={{flex:1,fontWeight:600}}>{car.name}</span>
+                  <span className={`badge ${car.status==='approved'?'badge-green':'badge-purple'}`}>
+                    {car.status==='approved'?'✅ Đã duyệt':'⏳ Chờ duyệt'}
+                  </span>
+                </div>
+              ))}
+              {(guestCars[playerName]||[]).length < 3 && (
+                <div style={{display:'flex',gap:8,marginTop:12}}>
+                  <input className="input" placeholder="Tên xe..." value={carInput}
+                    onChange={e=>setCarInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&registerCar()}/>
+                  <button className="btn btn-cyan" onClick={registerCar}>+ Đăng ký</button>
+                </div>
+              )}
+              {(guestCars[playerName]||[]).length >= 3 && (
+                <div className="text-dim text-sm mt-3">Đã đăng ký tối đa 3 xe.</div>
+              )}
+            </div>
+            <div className="text-center text-dim text-sm">
+              ⏳ Chờ Admin bắt đầu giải đấu...
+            </div>
+          </div>
+        )}
+
+        {/* TOURNAMENT ACTIVE */}
+        {tournament && (
+          <>
+            <PhaseIndicator phase={tournament.phase}/>
+
+            {/* Guest car registration (sidebar) */}
+            {!isAdmin && tournament.phase==='jackpot' && (
+              <div className="card mb-4">
+                <div className="card-title">🚗 XE CỦA BẠN</div>
+                {myCarIds.length===0 ? (
+                  <div className="text-dim text-sm">Bạn chưa có xe nào được duyệt.</div>
+                ) : (
+                  myCarIds.map(carId => {
+                    const p = tournament.players.find(p=>p.id===carId);
+                    return p ? (
+                      <div key={carId} style={{display:'flex',alignItems:'center',gap:10,padding:'6px 0'}}>
+                        <span className="badge badge-green">✅</span>
+                        <span style={{fontWeight:600}}>{p.name}</span>
+                        {p.jackpotNumber && <span className="badge badge-gold">{p.jackpotNumber}</span>}
+                      </div>
+                    ) : null;
+                  })
+                )}
+              </div>
+            )}
+
+            {/* TABS */}
+            <div className="tab-bar">
+              <button className={`tab ${activeTab==='players'?'active':''}`} onClick={()=>setActiveTab('players')}>
+                🏎️ {isAdmin?'Quay Số':'Số Hiệu'}
+              </button>
+              {tournament.phase==='qualifier' && (
+                <button className={`tab ${activeTab==='qualifier'?'active':''}`} onClick={()=>setActiveTab('qualifier')}>⚔️ Vòng Loại</button>
+              )}
+              {tournament.phase==='bracketSeed' && (
+                <button className={`tab ${activeTab==='seed'?'active':''}`} onClick={()=>setActiveTab('seed')}>🎰 Xếp Cặp</button>
+              )}
+              {(tournament.phase==='bracket'||tournament.phase==='complete') && (
+                <button className={`tab ${activeTab==='bracket'?'active':''}`} onClick={()=>setActiveTab('bracket')}>🏆 Bảng Đấu</button>
+              )}
+              <button className={`tab ${activeTab==='leaderboard'?'active':''}`} onClick={()=>setActiveTab('leaderboard')}>📊 Bảng Điểm</button>
+              {isAdmin && <button className={`tab ${activeTab==='cars'?'active':''}`} onClick={()=>setActiveTab('cars')}>🚗 Quản lý xe</button>}
+            </div>
+
+            {/* TAB: PLAYERS/JACKPOT */}
+            {activeTab==='players' && (
+              <div className="card mb-4">
+                <div className="card-title">🎰 QUAY SỐ MAY MẮN</div>
+                <div className="text-dim text-sm mb-4">Mỗi xe quay 1 lần để nhận số hiệu. Số này theo suốt giải đấu.</div>
+                <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                  {tournament.players.map(p => {
+                    const isMycar = myCarIds.includes(p.id);
+                    const canSpin = isAdmin || isMycar;
+                    return (
+                      <div key={p.id} style={{background:'var(--bg3)',borderRadius:10,padding:'12px 16px',
+                        border:p.jackpotNumber?'1px solid rgba(245,197,24,.19)':'1px solid var(--border)',
+                        display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                        <div style={{minWidth:180}}>
+                          <span style={{fontWeight:700}}>{p.name}</span>
+                          {p.ownerName && (
+                            <span className="text-dim text-xs" style={{marginLeft:8,fontFamily:'Share Tech Mono'}}>({p.ownerName})</span>
+                          )}
+                        </div>
+                        {p.jackpotNumber ? (
+                          <div style={{display:'flex',alignItems:'center',gap:10}}>
+                            <div className="jackpot-result" style={{fontSize:'1.4rem'}}>{p.jackpotNumber}</div>
+                            <span className="badge badge-gold">ĐÃ QUAY</span>
+                          </div>
+                        ) : canSpin ? (
+                          <JackpotReel onResult={num=>assignJackpotNumber(p.id,num)}
+                            disabled={p.jackpotNumber!==null} existingNumbers={existingNumbers}
+                            label={isAdmin&&!isMycar?`Quay cho ${p.name}`:'Xe của bạn'}/>
+                        ) : (
+                          <span className="text-dim text-sm mono">🔒 Chờ quay...</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {isAdmin && (
+                  <div style={{marginTop:20}}>
+                    <div className="progress-bar mb-2">
+                      <div className="progress-fill" style={{width:`${(tournament.players.filter(p=>p.jackpotNumber).length/tournament.players.length)*100}%`}}/>
+                    </div>
+                    <div className="text-sm text-dim mb-3">
+                      {tournament.players.filter(p=>p.jackpotNumber).length} / {tournament.players.length} đã quay
+                    </div>
+                    <button className="btn btn-gold w-full btn-lg" onClick={proceedFromJackpot} disabled={!allJackpotsAssigned}>
+                      {allJackpotsAssigned?'✅ TIẾP TỤC →':`Chờ ${tournament.players.filter(p=>!p.jackpotNumber).length} xe quay số...`}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: QUALIFIER */}
+            {activeTab==='qualifier' && tournament.phase==='qualifier' && (
+              <div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+                  <div className="orbitron text-gold" style={{fontSize:'1rem'}}>VÒNG LOẠI {tournament.currentQualifierRound} / {tournament.qualifierRounds}</div>
+                  <div className="badge badge-gold">{tournament.bracketTarget} suất vào bảng chính</div>
+                </div>
+                {tournament.qualifierData.map((roundData,roundIdx) => (
+                  <div key={roundIdx} className="card mb-4">
+                    <div className="card-title">⚔️ VÒNG LOẠI {roundData.round}</div>
+                    {roundData.groups.map((group,groupIdx) => {
+                      const allDiceRolled = group.players.every(p => group.lanes[p.id]!==undefined);
+                      const allScored = group.players.every(p => group.scores[p.id]!==undefined);
+                      const hasMycar = group.players.some(p => myCarIds.includes(p.id));
+                      return (
+                        <div key={groupIdx} style={{background:'var(--bg3)',borderRadius:10,padding:14,marginBottom:12,
+                          border:group.complete?'1px solid rgba(46,204,113,.19)':'1px solid var(--border)'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+                            <span className="mono text-dim text-xs">VÁN {groupIdx+1}</span>
+                            {group.complete&&<span className="badge badge-green">XONG</span>}
+                            {hasMycar&&!group.complete&&<span className="badge badge-cyan">XE BẠN</span>}
+                          </div>
+                          {group.players.map(p => {
+                            const diceLocked = group.lanes[p.id]!==undefined;
+                            return (
+                              <div key={p.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
+                                <span className="badge badge-gold">{p.jackpotNumber}</span>
+                                <span style={{fontWeight:600,flex:1,minWidth:80}}>
+                                  {p.name}
+                                  {p.ownerName&&<span className="text-dim text-xs" style={{marginLeft:6}}>({p.ownerName})</span>}
+                                </span>
+                                {diceLocked ? (
+                                  <span className={`lane-badge lane-${group.lanes[p.id]}`}>LANE {group.lanes[p.id]}</span>
+                                ) : (
+                                  <span className="text-dim text-xs mono">-</span>
+                                )}
+                                {isAdmin&&!group.complete&&(
+                                  <div style={{display:'flex',gap:4}}>
+                                    {[0,1,2,3].map(s=>(
+                                      <button key={s} className={`score-btn ${group.scores[p.id]===s?'selected':''}`}
+                                        style={{width:36,height:36,fontSize:'.85rem'}}
+                                        onClick={()=>handleQualifierScore(roundIdx,groupIdx,p.id,s)}>{s}</button>
+                                    ))}
+                                  </div>
+                                )}
+                                {(group.complete||!isAdmin)&&group.scores[p.id]!==undefined&&(
+                                  <span className="orbitron text-gold" style={{fontWeight:900,fontSize:'1.1rem',minWidth:32,textAlign:'right'}}>{group.scores[p.id]}</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {/* Dice button */}
+                          {!group.complete && (isAdmin || hasMycar) && (
+                            <button className="btn btn-cyan btn-sm" style={{marginTop:10}}
+                              onClick={()=>setShowDiceModal({roundIdx,groupIdx})}>
+                              🎲 Xóc xúc xắc lane
+                            </button>
+                          )}
+                          {isAdmin&&!group.complete&&(
+                            <button className="btn btn-gold btn-sm" style={{marginTop:10,marginLeft:8}}
+                              onClick={()=>completeQualifierGroup(roundIdx,groupIdx)}
+                              disabled={!allDiceRolled||!allScored}>
+                              ✅ Xác nhận ván này
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {isAdmin&&isQualifierRoundComplete(roundIdx)&&roundIdx===tournament.currentQualifierRound-1&&(
+                      <div style={{marginTop:16}}>
+                        {tournament.currentQualifierRound<tournament.qualifierRounds ? (
+                          <button className="btn btn-gold w-full" onClick={advanceQualifierRound}>
+                            ▶ VÒNG LOẠI {tournament.currentQualifierRound+1} →
+                          </button>
+                        ) : (
+                          <button className="btn btn-red w-full btn-lg" onClick={finalizeQualifiers}>
+                            🏆 TỔNG KẾT VÒNG LOẠI
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* TAB: BRACKET SEEDING */}
+            {activeTab==='seed' && tournament.phase==='bracketSeed' && (
+              <div style={{maxWidth:640,margin:'0 auto'}}>
+                <div className="card">
+                  <div className="card-title">🎰 XẾP CẶP ĐẤU</div>
+                  <div className="text-dim text-sm mb-4">Admin quay để tìm cặp đấu.</div>
+                  {seedingPlayers.length>0&&(
+                    <div style={{marginBottom:20}}>
+                      <div className="text-xs text-dim mono mb-2">CÒN LẠI ({seedingPlayers.length}):</div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                        {seedingPlayers.map(p=>(
+                          <span key={p.id} className="badge badge-dim">
+                            <span style={{color:'var(--gold)'}}>{p.jackpotNumber}</span> {p.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {isAdmin&&seedingPlayers.length>=2&&(
+                    <div style={{textAlign:'center',marginBottom:20}}>
+                      <button className="btn btn-gold btn-xl" onClick={spinNextPair} disabled={spinningPair}
+                        style={{animation:spinningPair?'glow-pulse .5s infinite':'none'}}>
+                        {spinningPair?'🎰 Đang quay...':'🎰 QUAY CẶP TIẾP THEO'}
+                      </button>
+                    </div>
+                  )}
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    {seedingPairs.map(([p1,p2],i)=>(
+                      <div key={i} style={{background:'var(--bg3)',borderRadius:10,padding:'10px 14px',
+                        border:'1px solid rgba(245,197,24,.19)',display:'flex',alignItems:'center',gap:10,animation:'slide-in-up .3s ease'}}>
+                        <span className="orbitron text-dim" style={{fontSize:'.75rem',minWidth:20}}>#{i+1}</span>
+                        <span className="badge badge-gold">{p1.jackpotNumber}</span>
+                        <span style={{fontWeight:700}}>{p1.name}</span>
+                        <span className="text-dim orbitron" style={{fontSize:'.75rem',margin:'0 8px'}}>VS</span>
+                        {p2 ? (
+                          <><span className="badge badge-gold">{p2.jackpotNumber}</span><span style={{fontWeight:700}}>{p2.name}</span></>
+                        ) : <span className="badge badge-cyan">BYE</span>}
+                      </div>
+                    ))}
+                  </div>
+                  {seedingPlayers.length===1&&(
+                    <div style={{marginTop:10}}>
+                      <div className="text-dim text-sm mb-2">Còn 1 xe, sẽ nhận BYE:</div>
+                      <span className="badge badge-cyan">{seedingPlayers[0].name} → BYE</span>
+                    </div>
+                  )}
+                  {isAdmin&&seedingPlayers.length<=1&&seedingPairs.length>0&&(
+                    <button className="btn btn-gold w-full btn-lg" style={{marginTop:20}} onClick={confirmBracketSeed}>
+                      ✅ XÁC NHẬN & TẠO BẢNG ĐẤU
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: BRACKET */}
+            {activeTab==='bracket' && (tournament.phase==='bracket'||tournament.phase==='complete') && (
+              <div>
+                {tournament.phase==='complete'&&tournament.champion&&(
+                  <div style={{background:'linear-gradient(135deg,rgba(245,197,24,.125),rgba(245,197,24,.031))',
+                    border:'2px solid var(--gold)',borderRadius:16,padding:24,textAlign:'center',marginBottom:20,
+                    animation:'winner-flash 2s ease-in-out infinite'}}>
+                    <div style={{fontSize:'3rem',marginBottom:8}}>🏆</div>
+                    <div className="orbitron text-gold" style={{fontSize:'1.5rem',fontWeight:900}}>VÔ ĐỊCH</div>
+                    <div style={{fontSize:'1.8rem',fontWeight:700,marginTop:8}}>{tournament.champion.name}</div>
+                    <div className="mono text-gold" style={{fontSize:'1.2rem',marginTop:4}}>#{tournament.champion.jackpotNumber}</div>
+                  </div>
+                )}
+                <div className="card mb-4">
+                  <div className="bracket-section-title" style={{color:'var(--gold)'}}>🏆 NHÁNH THẮNG</div>
+                  <div className="bracket-container">
+                    <div style={{display:'flex',gap:16,minWidth:'max-content'}}>
+                      {tournament.winnersRounds.map((round,ri)=>(
+                        <div key={ri} style={{display:'flex',flexDirection:'column',gap:8}}>
+                          <div className="bracket-round-label">{ri===tournament.winnersRounds.length-1?'CHUNG KẾT NHÁNH':`VÒNG W${ri+1}`}</div>
+                          <div style={{display:'flex',flexDirection:'column',gap:Math.pow(2,ri)*8,marginTop:Math.pow(2,ri-1)*4}}>
+                            {round.map((match,mi)=>(
+                              <div key={mi} onClick={()=>{if(match.status==='active'||(match.status==='complete'&&isAdmin)){setSelectedMatch(match);}}} style={{cursor:match.status==='active'?'pointer':'default'}}>
+                                <BracketMatchBox match={match} isAdmin={isAdmin} currentPlayerId={null}/>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {tournament.losersRounds.length>0&&(
+                  <div className="card mb-4">
+                    <div className="bracket-section-title" style={{color:'var(--red)'}}>💀 NHÁNH THUA</div>
+                    <div className="bracket-container">
+                      <div style={{display:'flex',gap:16,minWidth:'max-content'}}>
+                        {tournament.losersRounds.map((round,ri)=>(
+                          <div key={ri} style={{display:'flex',flexDirection:'column',gap:8}}>
+                            <div className="bracket-round-label" style={{color:'var(--red)'}}>VÒNG L{ri+1}</div>
+                            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                              {round.map((match,mi)=>(
+                                <div key={mi} onClick={()=>{if(match.status==='active'||(isAdmin&&match.status==='complete')){setSelectedMatch(match);}}} style={{cursor:match.status==='active'?'pointer':'default'}}>
+                                  <BracketMatchBox match={match} isAdmin={isAdmin} currentPlayerId={null}/>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {tournament.grandFinal&&(
+                  <div className="card">
+                    <div className="bracket-section-title" style={{color:'var(--gold)',fontSize:'1rem'}}>👑 GRAND FINAL</div>
+                    <div style={{display:'flex',gap:16,flexWrap:'wrap',alignItems:'flex-start'}}>
+                      <div onClick={()=>{if(tournament.grandFinal.status==='active')setSelectedMatch(tournament.grandFinal);}} style={{cursor:tournament.grandFinal.status==='active'?'pointer':'default'}}>
+                        <div className="text-xs text-dim mono mb-2" style={{letterSpacing:2}}>TRẬN CHÍNH</div>
+                        <BracketMatchBox match={tournament.grandFinal} isAdmin={isAdmin} currentPlayerId={null}/>
+                      </div>
+                      {tournament.grandFinalReset&&(
+                        <div onClick={()=>{if(tournament.grandFinalReset.status==='active')setSelectedMatch(tournament.grandFinalReset);}} style={{cursor:tournament.grandFinalReset.status==='active'?'pointer':'default'}}>
+                          <div className="text-xs text-dim mono mb-2" style={{letterSpacing:2,color:'var(--red)'}}>VÁN LẠI (RESET)</div>
+                          <BracketMatchBox match={tournament.grandFinalReset} isAdmin={isAdmin} currentPlayerId={null}/>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: LEADERBOARD */}
+            {activeTab==='leaderboard' && (
+              <div style={{maxWidth:600,margin:'0 auto'}}>
+                <div className="card">
+                  <div className="card-title">📊 BẢNG ĐIỂM</div>
+                  {tournament.hasQualifier&&(
+                    <>
+                      <div className="text-xs text-dim mono mb-3" style={{letterSpacing:2}}>ĐIỂM VÒNG LOẠI</div>
+                      {[...tournament.players].sort((a,b)=>(b.qualifierScore||0)-(a.qualifierScore||0)).map((p,i)=>{
+                        const qualifies = i<tournament.bracketTarget;
+                        return (
+                          <div key={p.id} className={`lb-row ${qualifies?'qualify':'eliminate'}`}>
+                            <span className="lb-rank">#{i+1}</span>
+                            <span className="badge badge-gold" style={{fontSize:'.7rem'}}>{p.jackpotNumber||'??'}</span>
+                            <span style={{flex:1,fontWeight:600}}>{p.name}</span>
+                            {p.status==='out'&&<span className="out-stamp">OUT</span>}
+                            {qualifies&&p.status!=='out'&&<span className="badge badge-green">PASS</span>}
+                            <span className="lb-score text-gold">{p.qualifierScore||0}</span>
+                          </div>
+                        );
+                      })}
+                      <div className="divider"/>
+                    </>
+                  )}
+                  <div className="text-xs text-dim mono mb-3" style={{letterSpacing:2}}>TRẠNG THÁI</div>
+                  {tournament.players.map(p=>(
+                    <div key={p.id} className={`lb-row ${p.status==='out'?'eliminate':'qualify'}`}>
+                      <span className="badge badge-gold" style={{fontSize:'.7rem'}}>{p.jackpotNumber||'??'}</span>
+                      <span style={{flex:1,fontWeight:600}}>{p.name}</span>
+                      {p.ownerName&&<span className="text-dim text-xs mono">({p.ownerName})</span>}
+                      {p.status==='out'?<span className="out-stamp">OUT</span>:<span className="badge badge-green">ACTIVE</span>}
+                      {tournament.champion?.id===p.id&&<span style={{fontSize:'1.2rem'}}>🏆</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: ADMIN CAR MANAGEMENT */}
+            {activeTab==='cars' && isAdmin && (
+              <div style={{maxWidth:640,margin:'0 auto'}}>
+                <div className="card mb-4">
+                  <div className="card-title">⏳ CHỜ DUYỆT ({pendingCars.length})</div>
+                  {pendingCars.length===0 && <div className="text-dim text-sm">Không có xe nào đang chờ duyệt.</div>}
+                  {pendingCars.map(car=>(
+                    <AdminCarRow key={car.id} car={car}
+                      onApprove={()=>adminApproveCar(car.ownerName,car.id)}
+                      onEdit={newName=>adminEditCar(car.ownerName,car.id,newName)}
+                      onDelete={()=>adminDeleteCar(car.ownerName,car.id)}/>
+                  ))}
+                </div>
+                <div className="card">
+                  <div className="card-title">✅ ĐÃ DUYỆT ({approvedCars.length})</div>
+                  {approvedCars.length===0 && <div className="text-dim text-sm">Chưa có xe nào được duyệt.</div>}
+                  {approvedCars.map(car=>(
+                    <AdminCarRow key={car.id} car={car} approved
+                      onEdit={newName=>adminEditCar(car.ownerName,car.id,newName)}
+                      onDelete={()=>adminDeleteCar(car.ownerName,car.id)}/>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* MATCH DETAIL MODAL */}
+      {selectedMatch && (
+        <MatchDetailModal
+          match={selectedMatch}
+          isAdmin={isAdmin}
+          onClose={()=>setSelectedMatch(null)}
+          onComplete={handleMatchComplete}
+          currentPlayerId={null}
+          toastFn={toast}
+        />
+      )}
+
+      {/* QUALIFIER DICE MODAL */}
+      {showDiceModal && tournament?.qualifierData[showDiceModal.roundIdx] && (
+        <QualifierDiceModal
+          group={tournament.qualifierData[showDiceModal.roundIdx].groups[showDiceModal.groupIdx]}
+          roundIdx={showDiceModal.roundIdx}
+          groupIdx={showDiceModal.groupIdx}
+          currentPlayerId={playerName}
+          isAdmin={isAdmin}
+          onDiceResult={handleQualifierDice}
+          onClose={()=>setShowDiceModal(null)}
+        />
+      )}
+
+      <ToastContainer toasts={toasts}/>
+    </>
+  );
+}
+
+// ============================================================
+// ADMIN CAR ROW
+// ============================================================
+function AdminCarRow({ car, approved, onApprove, onEdit, onDelete }) {
+  const [editing, setEditing] = useState(false);
+  const [editVal, setEditVal] = useState(car.name);
+
+  const save = () => { onEdit(editVal); setEditing(false); };
+
+  return (
+    <div className={approved?'approved-car':'pending-car'}>
+      <div style={{flex:1}}>
+        {editing ? (
+          <input className="input" value={editVal} onChange={e=>setEditVal(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter')save();if(e.key==='Escape'){setEditing(false);setEditVal(car.name);}}}
+            style={{padding:'4px 8px',fontSize:'.9rem'}} autoFocus/>
+        ) : (
+          <span style={{fontWeight:600}}>{car.name}</span>
+        )}
+        <span className="text-dim text-xs" style={{marginLeft:8,fontFamily:'Share Tech Mono'}}>({car.ownerName})</span>
+      </div>
+      {!approved&&<span className="badge badge-purple">⏳ Chờ</span>}
+      {approved&&<span className="badge badge-green">✅</span>}
+      {editing ? (
+        <>
+          <button className="btn btn-green btn-sm" onClick={save}>💾</button>
+          <button className="btn btn-outline btn-sm" onClick={()=>{setEditing(false);setEditVal(car.name);}}>✕</button>
+        </>
+      ) : (
+        <>
+          {!approved&&onApprove&&<button className="btn btn-green btn-sm" onClick={onApprove}>✅ Duyệt</button>}
+          <button className="btn btn-outline btn-sm" onClick={()=>setEditing(true)}>✏️</button>
+          <button className="btn btn-red btn-sm" onClick={onDelete}>🗑️</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
