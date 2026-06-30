@@ -7,6 +7,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
     :root {
@@ -171,7 +173,38 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
+// ============================================================
+// SUPABASE
+// ============================================================
 
+const SUPABASE_URL =
+"https://owpulzfxucatvidykmor.supabase.co";
+
+const SUPABASE_ANON_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cHVsemZ4dWNhdHZpZHlrbW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTUxNzUsImV4cCI6MjA5ODMzMTE3NX0.EkcX4d9IlcUp0cHb4J2bWtYjisFs3CxF1rnXZITPSdc";
+
+const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+async function testSupabase() {
+
+    const { data, error } = await supabase
+        .from("rooms")
+        .select("*")
+        .limit(1);
+
+    if (error) {
+
+        console.error(error);
+
+    } else {
+
+        console.log("SUPABASE OK");
+
+    }
+
+}
 // ============================================================
 // STORAGE KEY
 // ============================================================
@@ -664,7 +697,13 @@ function App() {
       saveRoom({ roomName, tournament, guestCars });
     }
   }, [tournament, roomName, guestCars]);
+  
+  useEffect(() => {
 
+    testSupabase();
+
+  }, []); 
+  
   // Load room data when joining
   const loadRoomData = (name) => {
     const saved = loadRoom();
