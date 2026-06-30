@@ -734,25 +734,13 @@ function App() {
   const [seedingPairs, setSeedingPairs] = useState([]);
   const [seedingPlayers, setSeedingPlayers] = useState([]);
   const [spinningPair, setSpinningPair] = useState(false);
-  // --- THÊM HÀM NÀY ĐỂ HẾT LỖI MÀN HÌNH ĐEN ---
-  const toast = (msg, type = 'success') => {
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, msg, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3000);
-  };
+
   // Hàm này để Admin lưu dữ liệu lên Supabase
 // Cho phép cả Guest và Admin đồng bộ dữ liệu lên Cloud
 const syncToCloud = async (newT, newG) => {
     if (roomName) {
-        // Cập nhật lên Supabase
-        await supabase
-            .from("rooms")
-            .update({ 
-                tournament: newT || tournament 
-            })
-            .eq("room_code", roomName);
+        // Cập nhật cả Tournament và Danh sách xe
+        await RoomService.updateRoom(roomName, newT || tournament, newG || guestCars);
     }
 };
 
@@ -877,7 +865,46 @@ useEffect(() => {
     toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
     setActiveTab('players');
   };
+RoomService.createRoom = async function(roomCode) {
 
+    console.log("CREATE ROOM", roomCode);
+
+    const { data, error } = await supabase
+        .from("rooms")
+        .insert([
+            {
+                room_code: roomCode,
+                tournament: { phase: 'jackpot', players: [] }
+            }
+        ])
+        .select();
+
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
+
+    return !error;
+}
+
+RoomService.joinRoom = async function(roomCode){
+
+    const { data, error } = await supabase
+        .from("rooms")
+        .select("*")
+        .eq("room_code", roomCode)
+        .single();
+
+    console.log(data);
+    console.log(error);
+
+    if(error){
+
+        return null;
+
+    }
+
+    return data;
+
+}
   const createRoom = async () => {
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
@@ -1018,7 +1045,7 @@ const allApprovedCars = () => {
     toast(`🎰 Số ${number} đã được gán!`,'success');
   };
 
-  const allJackpotsAssigned = tournament?.players.every(p => p.jackpotNumber!==null);
+  const allJackpotsAssigned = tournament?.players?.every(p => p.jackpotNumber !== null) ?? false;
 
   const proceedFromJackpot = () => {
     if (!allJackpotsAssigned) { toast('⚠️ Tất cả xe phải quay số!','error'); return; }
@@ -1139,7 +1166,7 @@ const allApprovedCars = () => {
 
   const isQualifierRoundComplete = (roundIdx) => {
     if (!tournament?.qualifierData[roundIdx]) return false;
-    return tournament.qualifierData[roundIdx].groups.every(g => g.complete);
+    return tournament?.qualifierData?.[roundIdx]?.groups?.every(g => g.complete) ?? false;
   };
 
   const advanceQualifierRound = () => {
@@ -1329,7 +1356,7 @@ const allApprovedCars = () => {
   };
 
   const isAdmin = role==='admin';
-  const existingNumbers = tournament?.players.filter(p=>p.jackpotNumber).map(p=>p.jackpotNumber)||[];
+  const existingNumbers = tournament?.players?.filter(p => p.jackpotNumber).map(p => p.jackpotNumber) || [];
   // Find cars owned by current guest
   const myCarIds = role==='guest' ? (guestCars[playerName]||[]).filter(c=>c.status==='approved').map(c=>c.id) : [];
   const currentPlayerForCar = (carId) => tournament?.players.find(p=>p.id===carId);
