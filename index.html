@@ -225,11 +225,17 @@ const RoomService = {
     },
 
     // Thêm hàm update để đồng bộ dữ liệu
-    async updateRoom(roomCode, tournament, guestCars) {
+    async updateRoom(roomCode, tournamentData, guestCarsData) {
+        // Gửi cả 2 cột lên Supabase
         const { error } = await supabase
             .from("rooms")
-            .update({ tournament, guest_cars: guestCars })
+            .update({ 
+                tournament: tournamentData, 
+                guest_cars: guestCarsData 
+            })
             .eq("room_code", roomCode);
+        
+        if (error) console.error("Lỗi đồng bộ:", error.message);
         return !error;
     }
 };
@@ -905,7 +911,7 @@ if(!ok){
     setGuestCars(updatedGuestCars);
     setCarInput('');
 
-    // 2. Gửi ngay lên Supabase để Admin thấy
+    // ĐỒNG BỘ LÊN CLOUD NGAY LẬP TỨC
     await syncToCloud(tournament, updatedGuestCars);
     
     toast(`🚗 Đã đăng ký xe "${newCar.name}"! Chờ Admin duyệt.`, 'success');
