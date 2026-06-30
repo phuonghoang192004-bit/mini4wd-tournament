@@ -722,8 +722,10 @@ function App() {
   const [spinningPair, setSpinningPair] = useState(false);
 
   // Hàm này để Admin lưu dữ liệu lên Supabase
+// Cho phép cả Guest và Admin đồng bộ dữ liệu lên Cloud
 const syncToCloud = async (newT, newG) => {
-    if (role === 'admin' && roomName) {
+    if (roomName) {
+        // Cập nhật cả Tournament và Danh sách xe
         await RoomService.updateRoom(roomName, newT || tournament, newG || guestCars);
     }
 };
@@ -876,50 +878,67 @@ if(!ok){
   };
 
   // ---- Guest car registration ----
-  const myApprovedCars = () => {
+  const myApprovedCars = async () => {
     if (!playerName || role!=='guest') return [];
     return (guestCars[playerName]||[]).filter(c=>c.status==='approved');
   };
 
-  const registerCar = () => {
-    if (!carInput.trim()) { toast('⚠️ Nhập tên xe!','error'); return; }
-    const existing = guestCars[playerName]||[];
-    if (existing.length >= 3) { toast('⚠️ Tối đa 3 xe mỗi người!','error'); return; }
-    if (existing.some(c=>c.name.toLowerCase()===carInput.trim().toLowerCase())) {
-      toast('⚠️ Tên xe đã tồn tại!','error'); return;
-    }
-    const newCar = { id:'car_'+Date.now(), name:carInput.trim(), status:'pending', ownerName:playerName };
-    const updated = { ...guestCars, [playerName]: [...existing, newCar] };
-    setGuestCars(updated);
+  const registerCar = async () => {
+    if (!carInput.trim()) { toast('⚠️ Nhập tên xe!', 'error'); return; }
+    
+    const existing = guestCars[playerName] || [];
+    if (existing.length >= 3) { toast('⚠️ Tối đa 3 xe mỗi người!', 'error'); return; }
+    
+    const newCar = { 
+        id: 'car_' + Date.now() + Math.random().toString(36).substr(2, 5), 
+        name: carInput.trim(), 
+        status: 'pending', 
+        ownerName: playerName 
+    };
+
+    const updatedGuestCars = { 
+        ...guestCars, 
+        [playerName]: [...existing, newCar] 
+    };
+
+    // 1. Cập nhật giao diện tại chỗ
+    setGuestCars(updatedGuestCars);
     setCarInput('');
-    toast(`🚗 Đăng ký xe "${newCar.name}" thành công! Chờ Admin duyệt.`,'success');
+
+    // 2. Gửi ngay lên Supabase để Admin thấy
+    await syncToCloud(tournament, updatedGuestCars);
+    
+    toast(`🚗 Đã đăng ký xe "${newCar.name}"! Chờ Admin duyệt.`, 'success');
   };
 
-  const adminApproveCar = (ownerName, carId) => {
+  const adminApproveCar = async (ownerName, carId) => {
     const updated = {
       ...guestCars,
       [ownerName]: (guestCars[ownerName]||[]).map(c => c.id===carId ? {...c,status:'approved'} : c)
     };
     setGuestCars(updated);
+    await syncToCloud(tournament, updated);
     toast('✅ Đã duyệt xe!','success');
   };
 
-  const adminEditCar = (ownerName, carId, newName) => {
+  const adminEditCar = async (ownerName, carId, newName) => {
     if (!newName.trim()) return;
     const updated = {
       ...guestCars,
       [ownerName]: (guestCars[ownerName]||[]).map(c => c.id===carId ? {...c,name:newName.trim()} : c)
     };
     setGuestCars(updated);
+    await syncToCloud(tournament, updated);
     toast('✅ Đã sửa tên xe!','success');
   };
 
-  const adminDeleteCar = (ownerName, carId) => {
+  const adminDeleteCar = async (ownerName, carId) => {
     const updated = {
       ...guestCars,
       [ownerName]: (guestCars[ownerName]||[]).filter(c => c.id!==carId)
     };
     setGuestCars(updated);
+    await syncToCloud(tournament, updated);
     toast('🗑️ Đã xóa xe!','success');
   };
 
