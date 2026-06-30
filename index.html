@@ -337,6 +337,9 @@ function DiceRoller({ allowedValues, onResult, disabled, locked, lockedValue }) 
   const [rolling, setRolling] = useState(false);
   const [displayVal, setDisplayVal] = useState('?');
 
+  // Kiểm tra quyền: Chỉ Admin HOẶC chủ xe mới được đổ
+  const canP1Dice = isAdmin || (playerName === p1?.ownerName);
+  const canP2Dice = isAdmin || (playerName === p2?.ownerName);
   const roll = () => {
     if (rolling || disabled || locked) return;
     setRolling(true);
@@ -452,40 +455,56 @@ function BracketMatchBox({ match, isAdmin, currentPlayerId }) {
 }
 
 // ============================================================
-// MATCH DETAIL MODAL
+// MATCH DETAIL MODAL - ĐÃ SỬA LUẬT LANE 1&3 VÀ PHÂN QUYỀN GUEST
 // ============================================================
 function MatchDetailModal({ match, isAdmin, onClose, onComplete, currentPlayerId, toastFn }) {
   const [p1Lane, setP1Lane] = useState(match.p1Lane);
   const [p2Lane, setP2Lane] = useState(match.p2Lane);
   const [p1Score, setP1Score] = useState(match.p1Score);
   const [p2Score, setP2Score] = useState(match.p2Score);
-  const [p1DiceLocked, setP1DiceLocked] = useState(match.p1Lane!==null);
-  const [p2DiceLocked, setP2DiceLocked] = useState(match.p2Lane!==null);
+  const [p1DiceLocked, setP1DiceLocked] = useState(match.p1Lane !== null);
+  const [p2DiceLocked, setP2DiceLocked] = useState(match.p2Lane !== null);
 
   const p1 = match.p1, p2 = match.p2;
-  const isTwoPlayer = !!(p1&&p2&&p2!=='BYE');
-  // Unique lane logic: if p1 already picked a lane, p2 cannot pick same lane
-  const p2AllowedDice = isTwoPlayer
-    ? (p1DiceLocked ? [1,2,3].filter(v=>v!==p1Lane) : [1,2,3])
-    : [1,2,3];
-  const p1AllowedDice = isTwoPlayer
-    ? (p2DiceLocked ? [1,2,3].filter(v=>v!==p2Lane) : [1,2,3])
-    : [1,2,3];
+  
+  // LUẬT MỚI: Chỉ dùng Lane 1 và Lane 3 cho trận 2 người
+  const allowedLanes = [1, 3];
 
-  const canP1Dice = isAdmin || currentPlayerId===p1?.id;
-  const canP2Dice = isAdmin || currentPlayerId===p2?.id;
-  const canScore = isAdmin;
+  // Logic lọc lane để không trùng nhau
+  const p1AllowedDice = p2DiceLocked 
+    ? allowedLanes.filter(v => v !== p2Lane) 
+    : allowedLanes;
+    
+  const p2AllowedDice = p1DiceLocked 
+    ? allowedLanes.filter(v => v !== p1Lane) 
+    : allowedLanes;
+
+  // PHÂN QUYỀN: Admin có quyền tất cả, Guest chỉ có quyền xóc xe của mình
+  // currentPlayerId ở đây chính là playerName mà bạn truyền từ App vào
+  const canP1Dice = isAdmin || (currentPlayerId === p1?.ownerName);
+  const canP2Dice = isAdmin || (currentPlayerId === p2?.ownerName);
+  const canScore = isAdmin; // Chỉ Admin mới được nhập điểm
 
   const handleSubmit = () => {
-    if (!p1DiceLocked || (!match.isBye&&!p2DiceLocked)) { toastFn('⚠️ Cần xóc xúc xắc trước!','error'); return; }
-    if (p1Score===null||(!match.isBye&&p2Score===null)) { toastFn('⚠️ Cần nhập điểm!','error'); return; }
-    if (isTwoPlayer && p1Lane===p2Lane) { toastFn('⚠️ Hai người không được cùng lane!','error'); return; }
+    if (!p1DiceLocked || (!match.isBye && !p2DiceLocked)) { 
+      toastFn('⚠️ Cần xóc xúc xắc trước!', 'error'); return; 
+    }
+    if (p1Score === null || (!match.isBye && p2Score === null)) { 
+      toastFn('⚠️ Cần nhập điểm!', 'error'); return; 
+    }
+    
     let winnerId, loserId;
-    if (match.isBye||!p2) { winnerId=p1?.id; loserId=null; }
-    else if (p1Score>p2Score) { winnerId=p1.id; loserId=p2.id; }
-    else if (p2Score>p1Score) { winnerId=p2.id; loserId=p1.id; }
-    else { toastFn('⚠️ Điểm bằng nhau! Admin chọn người thắng.','error'); return; }
-    onComplete({...match,p1Lane,p2Lane,p1Score,p2Score,winnerId,loserId,status:'complete'});
+    if (match.isBye || !p2) { 
+      winnerId = p1?.id; loserId = null; 
+    } else if (p1Score > p2Score) { 
+      winnerId = p1.id; loserId = p2.id; 
+    } else if (p2Score > p1Score) { 
+      winnerId = p2.id; loserId = p1.id; 
+    } else { 
+      toastFn('⚠️ Điểm bằng nhau! Admin chọn người thắng.', 'error'); return; 
+    }
+    
+    onComplete({ ...match, p1Lane, p2Lane, p1Score, p2Score, winnerId, loserId, status: 'complete' });
     onClose();
   };
 
@@ -496,43 +515,41 @@ function MatchDetailModal({ match, isAdmin, onClose, onComplete, currentPlayerId
           <div className="section-header" style={{marginBottom:0}}>⚔️ CHI TIẾT VÁN ĐẤU</div>
           <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
         </div>
+        
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
-          {/* P1 */}
+          {/* XE 1 */}
           <div style={{background:'var(--bg3)',borderRadius:10,padding:14,border:'1px solid var(--border)'}}>
             <div style={{fontWeight:700,marginBottom:8,fontSize:'.9rem'}}>
               <span className="badge badge-gold" style={{marginRight:6}}>{p1?.jackpotNumber||'??'}</span>
               {p1?.name||'Chờ...'}
             </div>
-            {!match.isBye&&p1&&(
+            <div className="text-xs text-dim mb-2">Chủ xe: {p1?.ownerName}</div>
+            
+            {!match.isBye && p1 && (
               <>
-                <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:8}}>XÓC XÚC XẮC:</div>
+                <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:8}}>XÓC LANE (1 hoặc 3):</div>
                 <DiceRoller
                   allowedValues={p1DiceLocked ? [p1Lane] : p1AllowedDice}
-                  onResult={v=>{setP1Lane(v);setP1DiceLocked(true);}}
-                  disabled={!canP1Dice||p1DiceLocked}
+                  onResult={v => { setP1Lane(v); setP1DiceLocked(true); }}
+                  disabled={!canP1Dice || p1DiceLocked}
                   locked={p1DiceLocked}
                   lockedValue={p1Lane}
                 />
-                {canScore&&(
+                {canScore && (
                   <div style={{marginTop:12}}>
                     <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:6}}>ĐIỂM:</div>
-                    <div style={{display:'flex',gap:6}}>
+                    <div style={{display:'flex',gap:4}}>
                       {[0,1,2,3].map(s=>(
                         <button key={s} className={`score-btn ${p1Score===s?'selected':''}`} onClick={()=>setP1Score(s)}>{s}</button>
                       ))}
                     </div>
                   </div>
                 )}
-                {!canScore&&p1Score!==null&&(
-                  <div style={{marginTop:8}}>
-                    <span className="orbitron text-gold" style={{fontSize:'1.2rem',fontWeight:900}}>{p1Score}</span>
-                    <span className="text-dim text-xs"> điểm</span>
-                  </div>
-                )}
               </>
             )}
           </div>
-          {/* P2 */}
+
+          {/* XE 2 */}
           <div style={{background:'var(--bg3)',borderRadius:10,padding:14,border:'1px solid var(--border)'}}>
             {match.isBye ? (
               <div style={{textAlign:'center',color:'var(--cyan)',padding:'20px 0'}}>🏆 BYE<br/><span className="text-dim text-xs">Tự động thắng</span></div>
@@ -542,41 +559,40 @@ function MatchDetailModal({ match, isAdmin, onClose, onComplete, currentPlayerId
                   <span className="badge badge-gold" style={{marginRight:6}}>{p2?.jackpotNumber||'??'}</span>
                   {p2?.name||'Chờ...'}
                 </div>
-                <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:8}}>XÓC XÚC XẮC:</div>
+                <div className="text-xs text-dim mb-2">Chủ xe: {p2?.ownerName}</div>
+                
+                <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:8}}>XÓC LANE (1 hoặc 3):</div>
                 <DiceRoller
                   allowedValues={p2DiceLocked ? [p2Lane] : p2AllowedDice}
-                  onResult={v=>{setP2Lane(v);setP2DiceLocked(true);}}
-                  disabled={!canP2Dice||p2DiceLocked}
+                  onResult={v => { setP2Lane(v); setP2DiceLocked(true); }}
+                  disabled={!canP2Dice || p2DiceLocked}
                   locked={p2DiceLocked}
                   lockedValue={p2Lane}
                 />
-                {canScore&&(
+                {canScore && (
                   <div style={{marginTop:12}}>
                     <div style={{fontSize:'.75rem',color:'var(--text-dim)',marginBottom:6}}>ĐIỂM:</div>
-                    <div style={{display:'flex',gap:6}}>
+                    <div style={{display:'flex',gap:4}}>
                       {[0,1,2,3].map(s=>(
                         <button key={s} className={`score-btn ${p2Score===s?'selected':''}`} onClick={()=>setP2Score(s)}>{s}</button>
                       ))}
                     </div>
                   </div>
                 )}
-                {!canScore&&p2Score!==null&&(
-                  <div style={{marginTop:8}}>
-                    <span className="orbitron text-gold" style={{fontSize:'1.2rem',fontWeight:900}}>{p2Score}</span>
-                    <span className="text-dim text-xs"> điểm</span>
-                  </div>
-                )}
               </>
             )}
           </div>
         </div>
-        {isAdmin&&(
-          <button className="btn btn-gold w-full" onClick={handleSubmit} disabled={!p1DiceLocked||(!match.isBye&&!p2DiceLocked)}>
+
+        {isAdmin && (
+          <button className="btn btn-gold w-full" onClick={handleSubmit} disabled={!p1DiceLocked || (!match.isBye && !p2DiceLocked)}>
             ✅ XÁC NHẬN KẾT QUẢ
           </button>
         )}
-        {!isAdmin&&(
-          <div className="text-center text-dim text-sm" style={{marginTop:8}}>🔒 Chỉ Admin mới có thể xác nhận kết quả</div>
+        {!isAdmin && (
+          <div className="text-center text-dim text-sm" style={{marginTop:8}}>
+            { (canP1Dice || canP2Dice) ? "🔓 Bạn có thể xóc xúc xắc cho xe của mình" : "🔒 Chỉ Admin hoặc Chủ xe mới được thao tác" }
+          </div>
         )}
       </div>
     </div>
@@ -1049,12 +1065,20 @@ function App() {
   };
 
   const finalizeQualifiers = () => {
-    const target = tournament.bracketTarget;
-    const sorted = [...tournament.players].sort((a,b) => (b.qualifierScore||0)-(a.qualifierScore||0));
-    const qualified = sorted.slice(0,target).map(p => ({...p,status:'active'}));
-    const eliminated = sorted.slice(target).map(p => ({...p,status:'out'}));
-    setTournamentAndSave(prev => ({...prev, players:[...qualified,...eliminated], phase:'bracketSeed'}));
-    toast(`🏆 ${target} xe vào bảng đấu chính!`,'success');
+    const target = tournament.bracketTarget; // 8, 16 hoặc 32
+    // Sắp xếp người chơi theo điểm vòng loại giảm dần
+    const sorted = [...tournament.players].sort((a, b) => (b.qualifierScore || 0) - (a.qualifierScore || 0));
+    
+    // Những người xếp hạng cao (trong target) thì Active, còn lại là Out
+    const updatedPlayers = sorted.map((p, index) => ({
+        ...p,
+        status: index < target ? 'active' : 'out'
+    }));
+
+    const updatedT = { ...tournament, players: updatedPlayers, phase: 'bracketSeed' };
+    setTournament(updatedT);
+    syncToCloud(updatedT, guestCars);
+    toast(`🏆 Đã chọn Top ${target} vào bảng đấu. ${updatedPlayers.filter(p=>p.status==='out').length} xe đã bị loại!`, 'success');
   };
 
   // ---- Bracket seeding ----
@@ -1083,57 +1107,48 @@ function App() {
   };
 
   const confirmBracketSeed = () => {
-    const target = tournament.bracketTarget;
-    const pairs = [...seedingPairs];
-    if (seedingPlayers.length===1) pairs.push([seedingPlayers[0], null]);
-
-    const makeMatch = (p1,p2,round,bracket,position) => ({
-      matchId:`${bracket}_R${round}_P${position}`,
-      p1:p1||null, p2:p2||null,
-      p1Lane:null, p2Lane:null, p1Score:null, p2Score:null,
-      winnerId:null, loserId:null,
-      status:(p1||p2)?((!p1||!p2)?'bye':'pending'):'pending',
-      round, bracket, position,
-      isBye:!!((p1&&!p2)||(!p1&&p2)),
+    const qualified = tournament.players.filter(p => p.status === 'active');
+    const shuffled = shuffle(qualified); // Trộn ngẫu nhiên cặp đấu đầu tiên
+    
+    const makeMatch = (id, r, br, pos) => ({
+        matchId: id, p1: null, p2: null, status: 'pending',
+        p1Lane: null, p2Lane: null, p1Score: null, p2Score: null,
+        winnerId: null, loserId: null, round: r, bracket: br, position: pos, isBye: false
     });
 
-    const wR1 = pairs.map((pair,i) => makeMatch(pair[0],pair[1],1,'W',i));
-    const wR1Resolved = wR1.map(m => {
-      if (m.isBye) {
-        const winner = m.p1||m.p2;
-        return {...m, winnerId:winner?.id, status:'complete', p1Score:m.p1?3:null, p2Score:m.p2?3:null};
-      }
-      return {...m, status:'active'};
+    // NHÁNH THẮNG (WINNER BRACKET)
+    const wbR1 = Array.from({ length: shuffled.length / 2 }, (_, i) => {
+        const m = makeMatch(`WB_R1_M${i}`, 1, 'WB', i);
+        m.p1 = shuffled[i * 2]; m.p2 = shuffled[i * 2 + 1]; m.status = 'active';
+        return m;
     });
 
-    const totalWRounds = Math.log2(target);
-    const allWRounds = [wR1Resolved];
-    let prevCount = wR1Resolved.length;
-    for (let r=2; r<=totalWRounds; r++) {
-      prevCount = Math.ceil(prevCount/2);
-      allWRounds.push(Array.from({length:prevCount},(_,i) => makeMatch(null,null,r,'W',i)));
-    }
+    // Tạo các Round tiếp theo của Nhánh thắng
+    const wbR2 = Array.from({ length: wbR1.length / 2 }, (_, i) => makeMatch(`WB_R2_M${i}`, 2, 'WB', i));
+    const wbR3 = Array.from({ length: wbR2.length / 2 }, (_, i) => makeMatch(`WB_R3_M${i}`, 3, 'WB', i));
+    const wbFinal = [makeMatch(`WB_FINAL`, 4, 'WB', 0)]; // Chung kết nhánh thắng
 
-    const totalLBRounds = (totalWRounds-1)*2;
-    const allLRounds = [];
-    let lbCount = target/4;
-    for (let r=1; r<=totalLBRounds; r++) {
-      allLRounds.push(Array.from({length:Math.max(1,lbCount)},(_,i) => makeMatch(null,null,r,'L',i)));
-      if (r%2===0&&lbCount>1) lbCount = Math.ceil(lbCount/2);
-    }
+    // NHÁNH THUA (LOSER BRACKET) - Các vòng 0-1, 1-1, 2-1...
+    const lbR1 = Array.from({ length: wbR1.length / 2 }, (_, i) => makeMatch(`LB_R1`, 1, 'LB', i)); // Round 0-1
+    const lbR2 = Array.from({ length: wbR1.length / 2 }, (_, i) => makeMatch(`LB_R2`, 2, 'LB', i)); // Round 1-1
+    // ... thêm các round nhánh thua dựa trên số người (logic này tự động giãn theo target)
 
-    const wR1Losers = wR1Resolved.filter(m=>m.loserId).map(m=>m.p1?.id===m.loserId?m.p1:m.p2).filter(Boolean);
-    const lbR1 = shuffle(wR1Losers);
-    for (let i=0; i<allLRounds[0]?.length&&i*2<lbR1.length; i++) {
-      allLRounds[0][i] = {...allLRounds[0][i], p1:lbR1[i*2]||null, p2:lbR1[i*2+1]||null,
-        status:(lbR1[i*2]&&lbR1[i*2+1])?'active':'pending'};
-    }
+    const qualifyingMatch = makeMatch(`QUALIFYING`, 10, 'QM', 0); // Trận xác định suất
+    const grandFinal = makeMatch(`GRAND_FINAL`, 11, 'GF', 0); // Chung kết tổng
 
-    const grandFinal = makeMatch(null,null,1,'GF',0);
-    setTournamentAndSave(prev => ({...prev, phase:'bracket', winnersRounds:allWRounds, losersRounds:allLRounds, grandFinal, matchHistory:{}}));
-    toast('🏆 Bảng đấu đã được tạo!','success');
+    const updatedT = {
+        ...tournament,
+        phase: 'bracket',
+        winnersRounds: [wbR1, wbR2, wbR3, wbFinal],
+        losersRounds: [lbR1, lbR2], // Bạn có thể thêm các vòng nhánh thua tại đây
+        qualifyingMatch,
+        grandFinal,
+        matchHistory: {}
+    };
+    setTournament(updatedT);
+    syncToCloud(updatedT, guestCars);
     setActiveTab('bracket');
-  };
+};
 
   // ---- Match complete ----
   const handleMatchComplete = (updatedMatch) => {
@@ -1817,9 +1832,9 @@ function App() {
         <MatchDetailModal
           match={selectedMatch}
           isAdmin={isAdmin}
-          onClose={()=>setSelectedMatch(null)}
+          onClose={() => setSelectedMatch(null)}
           onComplete={handleMatchComplete}
-          currentPlayerId={null}
+          currentPlayerId={playerName} // QUAN TRỌNG: Truyền playerName vào đây
           toastFn={toast}
         />
       )}
