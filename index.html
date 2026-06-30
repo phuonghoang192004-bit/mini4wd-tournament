@@ -734,13 +734,25 @@ function App() {
   const [seedingPairs, setSeedingPairs] = useState([]);
   const [seedingPlayers, setSeedingPlayers] = useState([]);
   const [spinningPair, setSpinningPair] = useState(false);
-
+  // --- THÊM HÀM NÀY ĐỂ HẾT LỖI MÀN HÌNH ĐEN ---
+  const toast = (msg, type = 'success') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, msg, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
   // Hàm này để Admin lưu dữ liệu lên Supabase
 // Cho phép cả Guest và Admin đồng bộ dữ liệu lên Cloud
 const syncToCloud = async (newT, newG) => {
     if (roomName) {
-        // Cập nhật cả Tournament và Danh sách xe
-        await RoomService.updateRoom(roomName, newT || tournament, newG || guestCars);
+        // Cập nhật lên Supabase
+        await supabase
+            .from("rooms")
+            .update({ 
+                tournament: newT || tournament 
+            })
+            .eq("room_code", roomName);
     }
 };
 
@@ -865,46 +877,7 @@ useEffect(() => {
     toast(`✅ Đã vào phòng "${roomInput.trim()}"!`,'success');
     setActiveTab('players');
   };
-RoomService.createRoom = async function(roomCode) {
 
-    console.log("CREATE ROOM", roomCode);
-
-    const { data, error } = await supabase
-        .from("rooms")
-        .insert([
-            {
-                room_code: roomCode,
-                tournament: {}
-            }
-        ])
-        .select();
-
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
-
-    return !error;
-}
-
-RoomService.joinRoom = async function(roomCode){
-
-    const { data, error } = await supabase
-        .from("rooms")
-        .select("*")
-        .eq("room_code", roomCode)
-        .single();
-
-    console.log(data);
-    console.log(error);
-
-    if(error){
-
-        return null;
-
-    }
-
-    return data;
-
-}
   const createRoom = async () => {
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
