@@ -337,9 +337,6 @@ function DiceRoller({ allowedValues, onResult, disabled, locked, lockedValue }) 
   const [rolling, setRolling] = useState(false);
   const [displayVal, setDisplayVal] = useState('?');
 
-  // Kiểm tra quyền: Chỉ Admin HOẶC chủ xe mới được đổ
-  const canP1Dice = isAdmin || (playerName === p1?.ownerName);
-  const canP2Dice = isAdmin || (playerName === p2?.ownerName);
   const roll = () => {
     if (rolling || disabled || locked) return;
     setRolling(true);
