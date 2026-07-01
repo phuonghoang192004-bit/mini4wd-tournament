@@ -733,27 +733,42 @@ function App() {
   // Supabase Realtime subscription — đồng bộ ngay khi Admin hoặc Guest cập nhật
   useEffect(() => {
     if (!roomName) return;
+
+    const applyRoomUpdate = (row) => {
+      if (row.room_code !== roomName) return; // filter client-side (đáng tin hơn server filter)
+      setTournament(prev => {
+        const rawT = row.tournament;
+        const incomingT = (rawT && rawT.players) ? rawT : null;
+        return JSON.stringify(prev) !== JSON.stringify(incomingT) ? incomingT : prev;
+      });
+      setGuestCars(prev => {
+        const incoming = row.guest_cars || {};
+        return JSON.stringify(prev) !== JSON.stringify(incoming) ? incoming : prev;
+      });
+    };
+
+    // Realtime: lắng nghe mọi UPDATE trên bảng rooms (không dùng filter server-side)
     const channel = supabase
-      .channel('room-changes-' + roomName)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomName}` },
-        (payload) => {
-          const row = payload.new;
-          setTournament(prev => {
-            const rawT = row.tournament;
-            const incomingT = (rawT && rawT.players) ? rawT : null;
-            const incoming = JSON.stringify(incomingT);
-            return JSON.stringify(prev) !== incoming ? incomingT : prev;
-          });
-          setGuestCars(prev => {
-            const incoming = JSON.stringify(row.guest_cars || {});
-            return JSON.stringify(prev) !== incoming ? (row.guest_cars || {}) : prev;
-          });
-        }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+      .channel('room-watch-' + roomName)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, (payload) => {
+        applyRoomUpdate(payload.new);
+      })
+      .subscribe((status) => {
+        console.log('[Realtime]', roomName, status);
+      });
+
+    // Polling fallback mỗi 5 giây — đảm bảo đồng bộ kể cả khi Realtime lag
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from('rooms').select('tournament, guest_cars, room_code')
+        .eq('room_code', roomName).maybeSingle();
+      if (data) applyRoomUpdate(data);
+    }, 5000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
   }, [roomName]);
 
   // Load room data when joining
