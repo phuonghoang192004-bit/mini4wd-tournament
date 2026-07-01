@@ -741,8 +741,10 @@ function App() {
         (payload) => {
           const row = payload.new;
           setTournament(prev => {
-            const incoming = JSON.stringify(row.tournament || null);
-            return JSON.stringify(prev) !== incoming ? (row.tournament || null) : prev;
+            const rawT = row.tournament;
+            const incomingT = (rawT && rawT.players) ? rawT : null;
+            const incoming = JSON.stringify(incomingT);
+            return JSON.stringify(prev) !== incoming ? incomingT : prev;
           });
           setGuestCars(prev => {
             const incoming = JSON.stringify(row.guest_cars || {});
@@ -799,15 +801,19 @@ function App() {
       .from('rooms')
       .select('*')
       .eq('room_code', code)
-      .single();
+      .maybeSingle();
     if (error || !data) {
       toast(`⚠️ Không tìm thấy phòng "${code}"!`, 'error');
       return;
     }
+    // Normalize: nếu tournament là {} (row cũ) thì coi như null
+    const rawT = data.tournament;
+    const t = (rawT && rawT.players) ? rawT : null;
+    const gc = data.guest_cars || {};
     setRoomName(code);
-    setTournament(data.tournament || null);
-    setGuestCars(data.guest_cars || {});
-    saveRoom({ roomName: code, tournament: data.tournament || null, guestCars: data.guest_cars || {} });
+    setTournament(t);
+    setGuestCars(gc);
+    saveRoom({ roomName: code, tournament: t, guestCars: gc });
     toast(`✅ Đã vào phòng "${code}"!`, 'success');
     setActiveTab('players');
   };
@@ -943,7 +949,7 @@ function App() {
     toast(`🎰 Số ${number} đã được gán!`,'success');
   };
 
-  const allJackpotsAssigned = tournament?.players.every(p => p.jackpotNumber!==null);
+  const allJackpotsAssigned = tournament?.players?.every(p => p.jackpotNumber!==null);
 
   const proceedFromJackpot = () => {
     if (!allJackpotsAssigned) { toast('⚠️ Tất cả xe phải quay số!','error'); return; }
@@ -1254,10 +1260,10 @@ function App() {
   };
 
   const isAdmin = role==='admin';
-  const existingNumbers = tournament?.players.filter(p=>p.jackpotNumber).map(p=>p.jackpotNumber)||[];
+  const existingNumbers = tournament?.players?.filter(p=>p.jackpotNumber).map(p=>p.jackpotNumber)||[];
   // Find cars owned by current guest
   const myCarIds = role==='guest' ? (guestCars[playerName]||[]).filter(c=>c.status==='approved').map(c=>c.id) : [];
-  const currentPlayerForCar = (carId) => tournament?.players.find(p=>p.id===carId);
+  const currentPlayerForCar = (carId) => tournament?.players?.find(p=>p.id===carId);
 
   // ============================================================
   // RENDER: LOGIN
