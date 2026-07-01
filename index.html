@@ -225,16 +225,14 @@ function clearSession() {
 
 // Global room store (shared across tabs via localStorage)
 const ROOM_KEY = 'm4wd_room_v3';
-// Thay thế hàm saveRoom cũ bằng đoạn này
 function saveRoom(room) {
   try { localStorage.setItem(ROOM_KEY, JSON.stringify(room)); } catch(e) {}
-  // Đẩy lên Supabase để các thiết bị khác (guest) đọc được
-  if (room && room.roomName) {
-    supabase.from('rooms')
-      .update({ tournament: room.tournament, guest_cars: room.guestCars || {} })
-      .eq('room_code', room.roomName)
-      .then(({error}) => { if (error) console.error('Cloud sync error:', error); });
-  }
+}
+function loadRoom() {
+  try {
+    const raw = localStorage.getItem(ROOM_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
 }
 
 // ============================================================
@@ -722,6 +720,40 @@ function App() {
 
   }, []); 
 
+  // ---- Supabase sync ----
+  const syncToCloud = useCallback(async (t, gc) => {
+    if (!roomName) return;
+    const { error } = await supabase
+      .from('rooms')
+      .update({ tournament: t ?? null, guest_cars: gc ?? {} })
+      .eq('room_code', roomName);
+    if (error) console.error('syncToCloud error:', error);
+  }, [roomName]);
+
+  // Supabase Realtime subscription — đồng bộ ngay khi Admin hoặc Guest cập nhật
+  useEffect(() => {
+    if (!roomName) return;
+    const channel = supabase
+      .channel('room-changes-' + roomName)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomName}` },
+        (payload) => {
+          const row = payload.new;
+          setTournament(prev => {
+            const incoming = JSON.stringify(row.tournament || null);
+            return JSON.stringify(prev) !== incoming ? (row.tournament || null) : prev;
+          });
+          setGuestCars(prev => {
+            const incoming = JSON.stringify(row.guest_cars || {});
+            return JSON.stringify(prev) !== incoming ? (row.guest_cars || {}) : prev;
+          });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [roomName]);
+
   // Load room data when joining
   const loadRoomData = (name) => {
     const saved = loadRoom();
@@ -732,25 +764,6 @@ function App() {
     }
     return false;
   };
-
-  // Sync room data periodically (simple polling for same-device multi-tab)
-  // Sync room data realtime qua Supabase (đồng bộ giữa Admin và Guest, kể cả khác thiết bị)
-  useEffect(() => {
-    if (!roomName) return;
-    const channel = supabase
-      .channel(`room-${roomName}`)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomName}` },
-        (payload) => {
-          const row = payload.new;
-          if (!row) return;
-          setTournament(row.tournament || null);
-          setGuestCars(row.guest_cars || {});
-        }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [roomName]);
 
   // ---- Auth ----
   const loginGuest = () => {
@@ -778,72 +791,42 @@ function App() {
   };
 
   // ---- Room join ----
-  // Hàm joinRoom mới có hỗ trợ tìm phòng từ Database
   const joinRoom = async () => {
-    if (!roomInput.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const code = roomInput.trim();
-    const foundLocal = loadRoomData(code);
-    if (foundLocal) {
-      setRoomName(code);
-      toast(`✅ Đã vào phòng "${code}"!`,'success');
-      setActiveTab('players');
-      return;
-    }
-    // Tìm trên Supabase nếu máy hiện tại chưa có dữ liệu
+    if (!code) { toast('⚠️ Nhập tên phòng!','error'); return; }
+    toast('🔍 Đang tìm phòng...', 'info');
     const { data, error } = await supabase
       .from('rooms')
       .select('*')
       .eq('room_code', code)
-      .maybeSingle();
+      .single();
     if (error || !data) {
-      toast(`⚠️ Không tìm thấy phòng "${code}"!`,'error');
+      toast(`⚠️ Không tìm thấy phòng "${code}"!`, 'error');
       return;
     }
+    setRoomName(code);
     setTournament(data.tournament || null);
     setGuestCars(data.guest_cars || {});
-    setRoomName(code);
-    toast(`✅ Đã vào phòng "${code}"!`,'success');
+    saveRoom({ roomName: code, tournament: data.tournament || null, guestCars: data.guest_cars || {} });
+    toast(`✅ Đã vào phòng "${code}"!`, 'success');
     setActiveTab('players');
   };
 
   const createRoom = async () => {
     if (!formName.trim()) { toast('⚠️ Nhập tên phòng!','error'); return; }
     const name = formName.trim();
-    const ok = await createRoomOnline(name);
-
-    if(!ok){
-
-    toast("Tên phòng đã tồn tại","error");
-
-    return;
-
+    const { error } = await supabase
+      .from('rooms')
+      .insert({ room_code: name, tournament: null, guest_cars: {} });
+    if (error) {
+      toast('Tên phòng đã tồn tại', 'error');
+      return;
     }
     setRoomName(name);
-    async function createRoomOnline(roomCode){
-
-    const { error } = await supabase
-        .from("rooms")
-        .insert({
-
-            room_code: roomCode,
-
-            tournament: {}
-
-        });
-
-    if(error){
-
-        console.error(error);
-
-        return false;
-
-    }
-
-    return true;
-
-  }
+    setTournament(null);
+    setGuestCars({});
     saveRoom({ roomName: name, tournament: null, guestCars: {} });
-    toast(`✅ Phòng "${name}" đã tạo!`,'success');
+    toast(`✅ Phòng "${name}" đã tạo!`, 'success');
     setShowNewTournament(true);
   };
 
@@ -864,6 +847,7 @@ function App() {
     const updated = { ...guestCars, [playerName]: [...existing, newCar] };
     setGuestCars(updated);
     saveRoom({ roomName, tournament, guestCars: updated });
+    syncToCloud(tournament, updated);
     setCarInput('');
     toast(`🚗 Đăng ký xe "${newCar.name}" thành công! Chờ Admin duyệt.`,'success');
   };
@@ -875,6 +859,7 @@ function App() {
     };
     setGuestCars(updated);
     saveRoom({ roomName, tournament, guestCars: updated });
+    syncToCloud(tournament, updated);
     toast('✅ Đã duyệt xe!','success');
   };
 
@@ -886,6 +871,7 @@ function App() {
     };
     setGuestCars(updated);
     saveRoom({ roomName, tournament, guestCars: updated });
+    syncToCloud(tournament, updated);
     toast('✅ Đã sửa tên xe!','success');
   };
 
@@ -896,6 +882,7 @@ function App() {
     };
     setGuestCars(updated);
     saveRoom({ roomName, tournament, guestCars: updated });
+    syncToCloud(tournament, updated);
     toast('🗑️ Đã xóa xe!','success');
   };
 
@@ -934,6 +921,7 @@ function App() {
     setShowNewTournament(false);
     setActiveTab('players');
     saveRoom({ roomName, tournament: t, guestCars });
+    syncToCloud(t, guestCars);
     toast(`🏆 Giải đấu bắt đầu với ${count} xe!`,'success');
   };
 
@@ -941,6 +929,7 @@ function App() {
     setTournament(prev => {
       const next = typeof fn === 'function' ? fn(prev) : fn;
       saveRoom({ roomName, tournament: next, guestCars });
+      syncToCloud(next, guestCars);
       return next;
     });
   };
@@ -1101,8 +1090,7 @@ function App() {
 
     const updatedT = { ...tournament, players: updatedPlayers, phase: 'bracketSeed' };
     setTournament(updatedT);
-    // Tìm dòng syncToCloud và sửa thành:
-    saveRoom({ roomName, tournament: updatedT, guestCars });
+    syncToCloud(updatedT, guestCars);
     toast(`🏆 Đã chọn Top ${target} vào bảng đấu. ${updatedPlayers.filter(p=>p.status==='out').length} xe đã bị loại!`, 'success');
   };
 
@@ -1171,8 +1159,7 @@ function App() {
         matchHistory: {}
     };
     setTournament(updatedT);
-    // Tìm dòng syncToCloud và sửa thành:
-    saveRoom({ roomName, tournament: updatedT, guestCars });
+    syncToCloud(updatedT, guestCars);
     setActiveTab('bracket');
 };
 
